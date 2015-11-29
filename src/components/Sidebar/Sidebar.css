@@ -1,0 +1,28 @@
+/* React Starter Kit | MIT License | http://www.reactstarterkit.com/ */
+@import '../variables.css';
+
+.Sidebar {
+  
+  .Sidebar-menu {
+    position: fixed;
+    width: 200px;
+    height: 100%;
+    background: var(--gray-darker);
+    background-image: url(bg.png);
+    h1 {
+      color: white;
+      text-align: center;
+      font-weight: 100;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    .menu-item {
+      color: white;
+      padding: 10px 20px;
+
+    }
+  }
+}
