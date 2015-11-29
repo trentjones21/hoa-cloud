@@ -24,25 +24,12 @@ class App extends Component {
 
 	toggleMenu() {
 		var self = this;
-		var msTime = 100;
 		var width = 200;
 
-		if (this.state.left < 100) {
-			var animate = setInterval(function() {
-				if (self.state.left < width) {	
-					self.setState({left: self.state.left + ((width/msTime) * 10 )});
-				} else {
-					clearInterval(animate);
-				}
-			}, 10);
+		if (this.state.left < width/2) {
+			self.setState({left: width});
 		} else {
-			var animate = setInterval(function() {
-				if (self.state.left > 0) {	
-					self.setState({left: self.state.left - ((width/msTime) * 10 )});
-				} else {
-					clearInterval(animate);
-				}
-			}, 10);
+			self.setState({left: 0});
 		}
 	};
 
