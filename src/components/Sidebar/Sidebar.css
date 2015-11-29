@@ -23,6 +23,9 @@
       color: white;
       padding: 10px 20px;
 
+      .fa {
+        width: 30px;
+      }
     }
   }
 }

@@ -29,21 +29,25 @@ class Navigation extends Component {
 					<h1>Menu</h1>
 					<a href='/' onClick={this.handleClick}>
 						<div className='menu-item'>
+							<i className='fa fa-home'></i>
 							Home
 						</div>
 					</a>
 					<a href='/admin' onClick={this.handleClick}>
 						<div className='menu-item'>
+							<i className='fa fa-star'></i>
 							Admin
 						</div>
 					</a>
 					<a href='/files' onClick={this.handleClick}>
 						<div className='menu-item'>
+							<i className='fa fa-folder'></i>
 							Files
 						</div>
 					</a>
 					<a href='/bill-pay' onClick={this.handleClick}>
 						<div className='menu-item'>
+							<i className='fa fa-credit-card-alt'></i>
 							Bill pay
 						</div>
 					</a>

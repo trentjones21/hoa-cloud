@@ -17,4 +17,10 @@
     font-weight: 100;
     white-space: nowrap;
   }
+
+  .Header-user-button {
+    position: absolute;
+    top: 90px;
+    right: 1px;
+  }
 }
