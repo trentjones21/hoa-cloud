@@ -54,9 +54,16 @@
 
   .Sidebar-screen-hidden {
     width: 0px;
+    opacity: 0;
+    transition-property: opacity, width;
+    transition-duration: .3s, 0s;
+    transition-delay: 0s, .3s;
   }
 
   .Sidebar-screen-visible {
     width: 100%;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: .5s;
   }
 }
