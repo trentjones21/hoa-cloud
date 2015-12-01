@@ -188,16 +188,15 @@ textarea {
   position: relative;
   height: calc(100% - 180px);
   .App-sidebar {
-    position: relative;
-    z-index: 0;
+    position: absolute;
+    z-index: 100;
   }
 
   .App-app {
-    position: absolute;
+    position: relative;
     z-index: 1;
     background: white;
     height: 100%;
-    width: 100%;
   }
 
   .App-content {

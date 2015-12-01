@@ -7,7 +7,7 @@ import withStyles from '../../decorators/withStyles';
 import Link from '../Link';
 
 @withStyles(styles)
-class Navigation extends Component {
+class Sidebar extends Component {
 	constructor() {
 		super()
 		this.handleClick = this.handleClick.bind(this);
@@ -25,8 +25,9 @@ class Navigation extends Component {
 	render() {
 		return (
 			<div className={classNames(this.props.className, 'Sidebar')}>
-				<div className='Sidebar-menu' onClick={this.props.toggleMenu}>
-					<h1>Menu</h1>
+
+				<div className={this.props.menuVisible ? 'Sidebar-menu Sidebar-menu-visible' : 'Sidebar-menu Sidebar-menu-hidden'} onClick={this.props.toggleMenu}>
+					<h1>Menu {this.props.menuVisible}</h1>
 					<a href='/' onClick={this.handleClick}>
 						<div className='menu-item'>
 							<i className='fa fa-home'></i>
@@ -52,9 +53,12 @@ class Navigation extends Component {
 						</div>
 					</a>
 				</div>
+				<div className={this.props.menuVisible ? 'Sidebar-screen Sidebar-screen-visible' : 'Sidebar-screen Sidebar-screen-hidden'} onClick={this.props.toggleMenu}>
+
+				</div>
 			</div>
     	);
   	}
 }
 
-export default Navigation;
+export default Sidebar;

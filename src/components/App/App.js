@@ -15,7 +15,7 @@ import Footer from '../Footer';
 class App extends Component {
 	constructor() {
 		super()
-		this.state = {left: 0};
+		this.state = {menuVisible: false};
 		this.toggleMenu = this.toggleMenu.bind(this);
 	}
 
@@ -25,23 +25,14 @@ class App extends Component {
 	};
 
 	toggleMenu() {
-		var self = this;
-		var width = 200;
-
-		if (this.state.left < width/2) {
-			self.setState({left: width});
-		} else {
-			self.setState({left: 0});
-		}
+		this.setState({menuVisible: !this.state.menuVisible});
 	};
 
-	renderPage(left) {
+	renderPage(menuVisible) {
 		return !this.props.error ? (
 			<div className='App'>
-				<div className='App-sidebar'>
-					<Sidebar toggleMenu={this.toggleMenu}></Sidebar>
-				</div>
-				<div className='App-app' style={{left: left}}>
+				<Sidebar toggleMenu={this.toggleMenu} menuVisible={menuVisible}></Sidebar>
+				<div className='App-app'>
 					<Header />
 					<Navigation toggleMenu={this.toggleMenu} />
 					<div className='App-content'>
@@ -55,7 +46,7 @@ class App extends Component {
 	};
 
 	render() {
-		return this.renderPage(this.state.left);
+		return this.renderPage(this.state.menuVisible);
 	}
 }
 
