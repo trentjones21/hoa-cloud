@@ -36,7 +36,7 @@ class Html extends Component {
 					<meta httpEquiv="X-UA-Compatible" content="IE=edge" />
 					<title>{this.props.title}</title>
 					<meta name="description" content={this.props.description} />
-					<meta name="viewport" content="width=device-width, initial-scale=1" />
+					<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0" />
 					<style id="css" dangerouslySetInnerHTML={{__html: this.props.css}} />
 					<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
 				</head>

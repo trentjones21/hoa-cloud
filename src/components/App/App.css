@@ -193,10 +193,11 @@ textarea {
   }
 
   .App-app {
-    position: relative;
+    position: absolute;
     z-index: 1;
     background: white;
     height: 100%;
+    width: 100%;
   }
 
   .App-content {

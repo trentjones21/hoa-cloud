@@ -2,12 +2,14 @@ import React, { PropTypes, Component } from 'react';
 import styles from './App.css';
 import withContext from '../../decorators/withContext';
 import withStyles from '../../decorators/withStyles';
+import withViewport from '../../decorators/withViewport';
 import Header from '../Header';
 import Navigation from '../Navigation';
 import Sidebar from '../Sidebar';
 import Feedback from '../Feedback';
 import Footer from '../Footer';
 
+@withViewport
 @withContext
 @withStyles(styles)
 class App extends Component {
