@@ -17,8 +17,8 @@ class LoginPage extends Component {
     return (
       <div className="LoginPage">
         <div className="LoginPage-container">
-          <h1>{title}</h1>
-          <p>...</p>
+          <h1>Login</h1>
+          <p>If you need an account, <a href='register'>click here</a></p>
         </div>
       </div>
     );

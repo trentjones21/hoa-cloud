@@ -3,7 +3,6 @@
 import React, { PropTypes, Component } from 'react';
 import styles from './ContentPage.css';
 import withStyles from '../../decorators/withStyles';
-
 @withStyles(styles)
 class ContentPage extends Component {
 

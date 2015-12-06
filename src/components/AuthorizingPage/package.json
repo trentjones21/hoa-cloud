@@ -1,0 +1,6 @@
+{
+  "name": "AuthorizingPage",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./AuthorizingPage.js"
+}

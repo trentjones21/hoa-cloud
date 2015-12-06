@@ -204,6 +204,12 @@ textarea {
     min-height: calc(100% - 180px);
     background: white;
     /* equal to footer height */
-
+	
+	
   }
+  }
+	
+.not-authorized {
+	text-align: center;
+	color: white;
 }

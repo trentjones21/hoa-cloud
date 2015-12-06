@@ -8,7 +8,6 @@ import Link from '../Link';
 
 @withStyles(styles)
 class Navigation extends Component {
-
 	static propTypes = {
 		className: PropTypes.string,
 	};
