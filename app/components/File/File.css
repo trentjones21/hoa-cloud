@@ -1,0 +1,12 @@
+.File {
+	width: 100%;
+	text-align: center;
+}
+
+.File .file-image {
+	margin: auto;
+}
+
+.File .file-label {
+	text-align: center;
+}

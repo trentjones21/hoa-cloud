@@ -1,0 +1,86 @@
+@import '../variables.css';
+
+.Sidebar .Sidebar-menu-hidden {
+	left: -200px;
+    transition-property: left;
+    transition-duration: .5s;
+}
+
+.Sidebar .Sidebar-menu-visible {
+    left: 0px;
+    transition-property: left;
+    transition-duration: .3s;
+}
+
+ 
+
+.Sidebar .Sidebar-menu {
+    position: fixed;
+    width: 200px;
+    height: 100%;
+    background: #333; 
+    /*background-image: url('bg.png');*/
+   	z-index: 5;
+  }
+.Sidebar .Sidebar-menu h1 {
+	color: white;
+    text-align: center;
+    font-weight: 100;
+}
+
+.Sidebar .Sidebar-menu a {
+   text-decoration: none;
+}
+
+.Sidebar .menu-item {
+   color: white;
+   padding: 10px 20px;
+
+   .fa {
+        width: 30px;
+    }
+}
+.Sidebar h1 {
+   color: white;
+   text-align: center;
+   font-weight: 100;
+}
+
+.Sidebar a {
+  text-decoration: none;
+}
+
+.Sidebar .menu-item {
+   color: white;
+   padding: 10px 20px;
+
+}
+
+.Sidebar .menu-item .fa {
+   width: 30px;
+}
+
+.Sidebar  .Sidebar-screen {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    background: rgba(0,0,0,.5);
+    z-index: 4
+  }
+
+.Sidebar  .Sidebar-screen-hidden {
+    width: 0px;
+    opacity: 0;
+    transition-property: opacity, width;
+    transition-duration: .3s, 0s;
+    transition-delay: 0s, .3s;
+  }
+
+.Sidebar  .Sidebar-screen-visible {
+    width: 100%;
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: .5s;
+}
+

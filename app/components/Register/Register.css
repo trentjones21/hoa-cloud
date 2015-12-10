@@ -1,0 +1,17 @@
+
+.Register {
+	background: white;
+	padding: 20px;
+	margin: 0px auto;
+	border-radius: 4px;
+}
+
+.Register .change-button {
+	padding-left: 10px;	
+	color: #79B99C;
+}
+
+.Register .change-button:hover {
+	cursor: pointer;
+
+}

@@ -1,0 +1,28 @@
+/* React Starter Kit | MIT License | http://www.reactstarterkit.com/ */
+@import '../variables.css';
+
+.Navigation {
+  border-bottom: 1px solid #aaa;
+  padding: 0px 10px;
+  height: calc(60px - 1px);
+  line-height: 60px;
+  white-space: nowrap;
+  
+}
+
+.Navigation .fa-bars {
+ 	padding-right: 36px;
+}
+
+
+.Navigation-link,
+.Navigation-link:active,
+.Navigation-link:visited {
+  color: var(--gray-darker);
+}
+
+.Navigation .item {
+	display: inline-block;
+	margin: 0px;
+	padding: 0px 10px;
+}

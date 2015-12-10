@@ -1,0 +1,15 @@
+.HOASearch .input {
+	width: 100%;
+	font-size: 16px;
+}
+
+.HOASearch .hoa-result {
+	font-size: 16px;
+	padding: 10px;
+}
+
+
+.HOASearch .hoa-result:hover {
+	background: #eee;
+	cursor: pointer;
+}

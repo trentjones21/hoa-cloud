@@ -1,0 +1,25 @@
+@import '../variables.css';
+
+
+.Header {
+  background: #79B99C;
+  color: #fff;
+  height: 120px;
+  line-height: 120px;
+
+}
+
+.Header h1 {
+  color: white;
+  margin: 0px auto;
+  text-align: center;
+  font-size: 48px;
+  font-weight: 100;
+  white-space: nowrap;
+}
+
+.Header .Header-user-button {
+  position: absolute;
+  top: 90px;
+  right: 1px;
+}

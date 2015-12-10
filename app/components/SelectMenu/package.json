@@ -1,0 +1,6 @@
+{
+  "name": "SelectMenu",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./SelectMenu.js"
+}
