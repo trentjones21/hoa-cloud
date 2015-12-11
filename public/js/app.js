@@ -703,12 +703,7 @@ webpackJsonp([1],[
 				dropdown = React.createElement(
 					"div",
 					{ className: "dropdown" },
-					href,
-					React.createElement(
-						"div",
-						{ className: "dropdown-item" },
-						"Item 2"
-					)
+					href
 				);
 				screen = React.createElement("div", { className: "screen", onClick: this.toggleMenu });
 			}

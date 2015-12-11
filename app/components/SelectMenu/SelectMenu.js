@@ -34,9 +34,6 @@ var SelectMenu = React.createClass({
 			dropdown = (
 				<div className='dropdown'>
 					{href}
-					<div className='dropdown-item'>
-						Item 2
-					</div>
 				</div>
 			);
 			screen = ( 
