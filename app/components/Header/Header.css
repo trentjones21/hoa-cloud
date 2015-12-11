@@ -16,6 +16,7 @@
   font-size: 48px;
   font-weight: 100;
   white-space: nowrap;
+  line-height: 120px;
 }
 
 .Header .Header-user-button {

@@ -26,3 +26,19 @@
 	margin: 0px;
 	padding: 0px 10px;
 }
+
+.Navigation .part {
+	display: inline-block;
+	margin: 0px;
+	padding: 0px 0px;
+}
+
+.Navigation .part:hover {
+	cursor: pointer;
+}
+
+.Navigation .slash {
+	display: inline-block;
+	margin: 0px;
+	padding: 0px 20px;
+}

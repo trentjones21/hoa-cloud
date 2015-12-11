@@ -21,6 +21,28 @@ var api = {
       }
     });
   },
+  // get the list of items, call the callback when complete
+  getHoa: function(cb) {
+	  console.log('getting hoa');
+    var url = "/api/hoas";
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'GET',
+      headers: {'Authorization': localStorage.token},
+      success: function(res) {
+		  console.log('res', res);
+        if (cb) cb(true, res);
+      },
+      error: function(xhr, status, err) {
+		  console.log('err', err);
+        // if there is an error, remove the login token
+        delete localStorage.token;
+        if (cb)
+          cb(false, status);
+      }
+    });
+  },
   // add an item, call the callback when complete
   addItem: function(title, cb) {
     var url = "/api/items";

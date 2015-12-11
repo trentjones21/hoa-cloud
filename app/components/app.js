@@ -29,8 +29,11 @@ var App = React.createClass({
 	toggleMenu: function() {
 		this.setState({menuVisible: !this.state.menuVisible});
 	},
-	setNavigation: function(items) {
-		this.setState({navigation: items});
+	setNavigation: function(items, path) {
+		if (items)
+			this.setState({navigationItems: items});
+		if (path)
+			this.setState({navigationPath: path})
 	},
 	render: function() {
 		var self = this;
@@ -42,7 +45,7 @@ var App = React.createClass({
 			<div>
 				<Sidebar toggleMenu={this.toggleMenu} menuVisible={this.state.menuVisible}/>
 				<Header />
-				<Navigation toggleMenu={this.toggleMenu} items={this.state.navigation}/>
+				<Navigation toggleMenu={this.toggleMenu} items={this.state.navigationItems} path={this.state.navigationPath}/>
 				<div className="container">
 					{childrenWithProps}
 				</div>

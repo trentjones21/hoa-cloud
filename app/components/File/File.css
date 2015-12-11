@@ -1,10 +1,14 @@
 .File {
 	width: 100%;
 	text-align: center;
+	margin: 30px;
+}
+
+.File:hover {
+	cursor: pointer;
 }
 
 .File .file-image {
-	margin: auto;
 }
 
 .File .file-label {

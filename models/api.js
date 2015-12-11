@@ -12,7 +12,17 @@ app.use(bodyParser.urlencoded({
 //
 // API
 //
-
+Hoa.create({
+	name: 'Apple Valley',
+	message: 'On behalf of the Apple Valley Homeowners Association Board of Directors and the other homeowners of Apple Valley at Pointe Vista, we would like to welcome you to your new home and our community. Over the coming months we look forward to meeting you whether it be walking down the streets, at the pool or a community activity.  The operation of your homeowners association is governed by a board of volunteer directors. The Board of Directors is elected by the community to oversee the daily functions and financial responsibilities of the Association. The Board is also responsible for maintaining members’ compliance with the established covenants and bylaws of the Association. They have specific provisions regarding what can and cannot be done on your property. Please take the time to read through the Bylaws and Covenants documents you received during the home purchase process. Copies are available on the community web site. ',
+	announcements: [{
+		title: 'Pool Closing',
+		description: 'The pool will be closing for the winter'
+	}, {
+	 	title: 'Fall Party',
+		description: 'You are invited to attend the annual HOA Fall get together!'
+	}]
+});
 // register a user
 app.post('/api/users/register', function (req, res) {
 	console.log('git');
@@ -72,7 +82,7 @@ app.get('/api/hoas', function (req,res) {
   user = User.verifyToken(req.headers.authorization, function(user) {
     if (user) {
       // if the token is valid, find all the user's hoas and return them
-      Hoa.find({user:user.id}, function(err, hoas) {
+      Hoa.find(function(err, hoas) {
 	if (err) {
 	  res.sendStatus(403);
 	  return;
@@ -121,6 +131,28 @@ app.get('/api/items', function (req,res) {
 	}
 	// return value is the list of items as JSON
 	res.json({items: items});
+      });
+    } else {
+      res.sendStatus(403);
+    }
+  });
+});
+
+// get all items for the user
+app.get('/api/hoas', function (req,res) {
+  // validate the supplied token
+  user = User.verifyToken(req.headers.authorization, function(user) {
+    if (user) {
+      // if the token is valid, find all the user's items and return them
+      Hoa.find({}, function(err, items) {
+	if (err) {
+		consle.log('err', err);
+	  res.sendStatus(403);
+	  return;
+	}
+	// return value is the list of items as JSON
+	console.log('times', items);
+	res.json({hoas: items});
       });
     } else {
       res.sendStatus(403);

@@ -56,6 +56,7 @@
   font-size: 48px;
   font-weight: 100;
   white-space: nowrap;
+  line-height: 120px;
 }
 
 .Header .Header-user-button {
@@ -89,6 +90,22 @@
 	display: inline-block;
 	margin: 0px;
 	padding: 0px 10px;
+}
+
+.Navigation .part {
+	display: inline-block;
+	margin: 0px;
+	padding: 0px 0px;
+}
+
+.Navigation .part:hover {
+	cursor: pointer;
+}
+
+.Navigation .slash {
+	display: inline-block;
+	margin: 0px;
+	padding: 0px 20px;
 }
 .UserButton {
   line-height: 0px;
@@ -256,14 +273,38 @@
 .File {
 	width: 100%;
 	text-align: center;
+	margin: 30px;
+}
+
+.File:hover {
+	cursor: pointer;
 }
 
 .File .file-image {
-	margin: auto;
 }
 
 .File .file-label {
 	text-align: center;
+}
+.Home {
+
+}
+
+.Home .hoa-name {
+	text-align: center;
+}
+
+.Home .message {
+	text-align: center;
+	font-size: 14px;
+}
+
+.Home .announcements {
+
+}
+
+.Home .announcements .announcement {
+
 }
 /*!
  * Bootstrap v3.3.6 (http://getbootstrap.com)

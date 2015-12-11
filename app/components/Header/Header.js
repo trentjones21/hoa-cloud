@@ -7,10 +7,16 @@ var Navigation = require('../Navigation');
 var UserButton = require('../UserButton');
 
 var Header = React.createClass({
+	getInitialState: function() {
+		var hoaName = localStorage.hoaName;
+		return {
+			hoaName: hoaName || 'HOA Cloud'
+		}
+	},
 	render: function() {
     	return (
       		<div className="Header">
-          		<h1>Apple Valley</h1>
+          		<h1>{this.state.hoaName}</h1>
           		<UserButton className='Header-user-button'></UserButton>
       		</div>
     	);
