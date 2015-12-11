@@ -31,7 +31,7 @@ var Register = React.createClass({
 			return this.setState({
 			  error: true
 			});
-		  this.history.pushState(null, '/list');
+		  this.history.pushState(null, '/home');
 		}.bind(this));
 		API.auth.register({
 			firstName: firstname, 
