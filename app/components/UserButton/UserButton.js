@@ -5,15 +5,16 @@ var classNames = require('classnames');
 var styles = require('./UserButton.css');
 var Link = ReactRouter.Link;
 var SelectMenu = require('../SelectMenu');
-var Auth = require('../auth');
+var API = require('../../services/api');
 
 var UserButton = React.createClass({
   	mixins: [ History ],
 	getInitialState: function() {
 		return {menuItems: [{
 			text: 'Logout',
+			icon: 'fa-sign-out',
 			callback: function() {
-				Auth.logout(function() {
+				API.auth.logout(function() {
 					window.location.replace('/');
 				});
 			}

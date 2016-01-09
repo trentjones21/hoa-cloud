@@ -1,7 +1,6 @@
 var React = require('react');
 var ReactRouter = require('react-router');
 var styles = require('./HomePage.css');
-var api = require('../api');
 
 var HomePage = React.createClass({
 	getInitialState: function() {
@@ -14,7 +13,7 @@ var HomePage = React.createClass({
 	componentWillMount: function() {
 		var self = this;
 		console.log('commponentWillMount');
-		api.getHoa(function(success, hoas) {
+/*		api.getHoa(function(success, hoas) {
 			var hoa = hoas.hoa[hoas.hoa.length - 1];
 			console.log('hoooa', hoa);
 			self.setState({
@@ -23,6 +22,7 @@ var HomePage = React.createClass({
 				announcements: hoa.announcements
 			});
 		});
+		*/
 	},
 	render: function() {
 		return (

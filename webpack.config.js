@@ -27,6 +27,12 @@ module.exports = {
 					presets: ['react']
 				}
 			},
+			// loader for JSON
+			{
+				test: /\.json$/,
+				exclude: /node_modules/,
+				loader: "json"
+			},
 			// loader for HTML
 			{
 				test: /\.html$/,

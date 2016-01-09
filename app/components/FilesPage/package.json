@@ -1,6 +1,7 @@
 {
   "name": "FilesPage",
   "version": "0.0.0",
-  "private": true,
-  "main": "./FilesPage.js"
+  "private": false,
+  "main": "./FilesPage.js",
+  "secure": true
 }

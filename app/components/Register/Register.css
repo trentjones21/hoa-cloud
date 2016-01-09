@@ -1,9 +1,11 @@
-
 .Register {
-	background: white;
-	padding: 20px;
-	margin: 0px auto;
-	border-radius: 4px;
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
+	left: 0px; 
+	right: 0px;
+	background: #eee;
+	margin: auto;
 }
 
 .Register .change-button {
@@ -14,4 +16,38 @@
 .Register .change-button:hover {
 	cursor: pointer;
 
+}
+
+.Register .outer {
+	display: table;
+	position: absolute;
+	height: 100%;
+	width: 100%;
+}
+
+.Register .middle {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.Register .inner {
+	margin-left: auto;
+	margin-right: auto; 
+}
+.Register .login-box {
+	background: white;
+	border-radius: 4px;
+	border: 1px solid #aaa;
+	padding: 20px;
+	width: 300px;
+	min-height: 420px;
+}
+
+.Register .login-box .logo {
+	width: 85%;
+}
+
+.Register .instructions {
+	font-size: 20px;
+	margin-bottom: 40px;
 }

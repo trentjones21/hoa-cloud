@@ -1,7 +1,7 @@
 .File {
 	width: 100%;
 	text-align: center;
-	margin: 30px;
+	margin: 0px;
 }
 
 .File:hover {
@@ -13,4 +13,49 @@
 
 .File .file-label {
 	text-align: center;
+}
+
+.File .action-wrapper {
+	position: absolute;
+	top: 30px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	margin-top: 50px;
+	color: white;
+}
+
+.File .close-button {
+	position: absolute;
+	top: 17px;
+	margin-left: 98px;
+	opacity: 0;
+	color: #aaa;
+    transition-property: opacity;
+    transition-duration: .2s;
+	transition-delay: 0s;
+}
+
+.File .close-button:hover {
+	color: #666;
+}
+
+.File:hover .close-button {
+	opacity: 1;
+    transition-property: opacity;
+    transition-duration: .5s;
+	transition-delay: .3s;
+	cursor: pointer;
+}
+
+.File .folder-image {
+	
+}
+
+.File .hidden-icon {
+	opacity: 0;
+}
+.File .folder-image:hover {
+	cursor: pointer;
 }

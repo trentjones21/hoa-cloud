@@ -1,0 +1,78 @@
+.AddFileButton {
+	text-align: center;
+	margin: 0px;
+}
+
+.AddFileButton:hover {
+	cursor: pointer;
+}
+
+.AddFileButton .upload-btn {
+	margin-right: 5px;
+},
+
+.AddFileButton .file-image {
+}
+
+.AddFileButton .file-label {
+	text-align: center;
+}
+
+.AddFileButton .add-folder-image {
+	opacity: .4;
+    transition-property: opacity;
+    transition-duration: .3s, 0s;
+    transition-delay: 0s, .3s;
+}
+
+.AddFileButton .add-folder-image:hover {
+	opacity: 1;
+    transition-property: opacity;
+    transition-duration: .3s, 0s;
+    transition-delay: 0s, .3s;
+}
+
+.AddFileButton .screen {
+	z-index: 100;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	background: rgba(0,0,0,.3);
+}
+
+.AddFileButton .folder-popover {
+	position: absolute;
+	top: 25%;
+	left: 50%;
+	width: 400px;
+	margin-left: -200px;
+	background: white;
+	z-index: 101;
+	border-radius: 4px;
+	padding: 20px 60px 70px 60px;
+}
+
+.AddFileButton .dropzone {
+	width: 300px;
+	height: 300px;
+	margin: auto;
+	border-radius: 4px;
+	border: 2px dashed #aaa;
+	padding: 10px;
+	font-size: 20px;
+
+}
+
+.AddFileButton .dropzone-active {
+	background: #eee;
+}
+
+.AddFileButton .dropzone .fa-cloud-upload {
+	color: #eee;
+}
+
+.AddFileButton .dropzone-active .fa-cloud-upload {
+	color: #fff;
+}

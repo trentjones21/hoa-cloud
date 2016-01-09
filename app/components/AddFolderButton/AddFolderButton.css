@@ -1,0 +1,67 @@
+.AddFolderButton {
+	text-align: center;
+	margin: 0px;
+}
+
+.AddFolderButton:hover {
+	cursor: pointer;
+}
+
+.AddFolderButton .file-image {
+}
+
+.AddFolderButton .file-label {
+	text-align: center;
+}
+
+.AddFolderButton .add-folder-image {
+	opacity: .4;
+    transition-property: opacity;
+    transition-duration: .3s, 0s;
+    transition-delay: 0s, .3s;
+}
+
+.AddFolderButton .add-folder-image:hover {
+	opacity: 1;
+    transition-property: opacity;
+    transition-duration: .3s, 0s;
+    transition-delay: 0s, .3s;
+}
+
+.AddFolderButton .screen {
+	z-index: 100;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	background: rgba(0,0,0,.3);
+}
+
+.AddFolderButton .folder-popover {
+	position: absolute;
+	top: 25%;
+	left: 50%;
+	width: 400px;
+	margin: auto;
+	margin-left: -200px;
+	background: white;
+	z-index: 101;
+	border-radius: 4px;
+	padding: 20px 20px 70px 20px;
+}
+
+.AddFolderButton .dropzone {
+	width: 300px;
+	height: 300px;
+	margin: auto;
+	border-radius: 4px;
+	border: 2px dashed #aaa;
+	padding: 10px;
+	font-size: 20px;
+
+}
+
+.AddFolderButton .dropzone-active {
+	background: #eee;
+}

@@ -18,30 +18,20 @@ var Sidebar = React.createClass( {
 					onClick={this.props.toggleMenu}
 				>
 					<h1>Menu {this.props.menuVisible}</h1>
-					<a href='/' onClick={this.handleClick}>
 						<div className='menu-item'>
 							<i className='fa fa-home'></i>
-							Home
+							Home <small className='coming-soon'>coming soon!</small>
 						</div>
-					</a>
-					<a href='/admin' onClick={this.handleClick}>
-						<div className='menu-item'>
-							<i className='fa fa-star'></i>
-							Admin
-						</div>
-					</a>
 					<a href='#files'>
 						<div className='menu-item'>
 							<i className='fa fa-folder'></i>
 							Files
 						</div>
 					</a>
-					<a href='/bill-pay' onClick={this.handleClick}>
 						<div className='menu-item'>
 							<i className='fa fa-credit-card-alt'></i>
-							Bill pay
+							Bill pay <small className='coming-soon'>coming soon!</small>
 						</div>
-					</a>
 				</div>
 				<div className={this.props.menuVisible ? 'Sidebar-screen Sidebar-screen-visible' : 'Sidebar-screen Sidebar-screen-hidden'} 
 					onClick={this.props.toggleMenu}

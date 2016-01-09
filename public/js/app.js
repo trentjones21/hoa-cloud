@@ -13,15 +13,34 @@ webpackJsonp([1],[
 	var Route = ReactRouter.Route;
 	var IndexRoute = ReactRouter.IndexRoute;
 	
-	var App = __webpack_require__(/*! ./app.js */ 208);
-	var Home = __webpack_require__(/*! ./home.js */ 230);
-	var Login = __webpack_require__(/*! ./login.js */ 231);
-	var Register = __webpack_require__(/*! ./Register */ 232);
-	var FilesPage = __webpack_require__(/*! ./FilesPage */ 266);
-	var HomePage = __webpack_require__(/*! ./HomePage */ 274);
+	var jwt = __webpack_require__(/*! ../services/jwt */ 206);
+	var roles = jwt.get('roles');
 	
-	__webpack_require__(/*! ../../~/bootstrap/dist/css/bootstrap.min.css */ 277);
-	__webpack_require__(/*! ../css/app.css */ 284);
+	var App = __webpack_require__(/*! ./app.js */ 211);
+	var Home = __webpack_require__(/*! ./home.js */ 263);
+	var Login = __webpack_require__(/*! ./Login */ 264);
+	var Register = __webpack_require__(/*! ./Register */ 272);
+	
+	var FilesPage = __webpack_require__(/*! ./FilesPage */ 275);
+	var FilesPagePackage = __webpack_require__(/*! ./FilesPage/package.json */ 302);
+	
+	var HomePage = __webpack_require__(/*! ./HomePage */ 303);
+	var HomePagePackage = __webpack_require__(/*! ./HomePage/package.json */ 306);
+	
+	__webpack_require__(/*! ../../~/bootstrap/dist/css/bootstrap.min.css */ 307);
+	__webpack_require__(/*! ../css/app.css */ 314);
+	
+	var appSubRoutes = [{
+		name: 'files',
+		path: '/files',
+		component: FilesPage,
+		package: FilesPagePackage
+	}, {
+		name: 'home',
+		path: '/home',
+		component: HomePage,
+		package: HomePagePackage
+	}];
 	
 	var routes = React.createElement(
 		Router,
@@ -30,8 +49,13 @@ webpackJsonp([1],[
 			Route,
 			{ name: "app", path: "/", component: App },
 			React.createElement(IndexRoute, { component: Home }),
-			React.createElement(Route, { name: "files", path: "/files", component: FilesPage }),
-			React.createElement(Route, { name: "files", path: "/home", component: HomePage })
+			appSubRoutes.map(function (route) {
+				if (route.package.secure && !jwt.hasValidToken()) {
+					return React.createElement(Route, { key: route.name, path: route.path });
+				} else {
+					return React.createElement(Route, { key: route.name, path: route.path, component: route.component });
+				}
+			})
 		),
 		React.createElement(Route, { name: "login", path: "/login", component: Login }),
 		React.createElement(Route, { name: "register", path: "/register", component: Register })
@@ -256,9 +280,185 @@ webpackJsonp([1],[
 /* 203 */,
 /* 204 */,
 /* 205 */,
-/* 206 */,
-/* 207 */,
+/* 206 */
+/*!*****************************!*\
+  !*** ./services/jwt/jwt.js ***!
+  \*****************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var jwtDecode = __webpack_require__(/*! jwt-decode */ 207);
+	
+	var jwt = {
+		get: function (optionalKey) {
+			if (localStorage.ghost) {
+				var token = jwtDecode(localStorage.ghost);
+				if (!optionalKey) {
+					return token;
+				} else {
+					return token[optionalKey];
+				}
+			} else {
+				return null;
+			}
+		},
+		hasValidToken: function () {
+			if (localStorage.ghost) {
+				var token = jwtDecode(localStorage.ghost);
+			}
+			return !!localStorage.ghost;
+		}
+	
+	};
+	
+	module.exports = jwt;
+
+/***/ },
+/* 207 */
+/*!************************************!*\
+  !*** ../~/jwt-decode/lib/index.js ***!
+  \************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var base64_url_decode = __webpack_require__(/*! ./base64_url_decode */ 208);
+	var json_parse = __webpack_require__(/*! ./json_parse */ 210);
+	
+	module.exports = function (token) {
+	  if (!token) {
+	    throw new Error('Invalid token specified');
+	  }
+	  
+	  return json_parse(base64_url_decode(token.split('.')[1]));
+	};
+
+
+/***/ },
 /* 208 */
+/*!************************************************!*\
+  !*** ../~/jwt-decode/lib/base64_url_decode.js ***!
+  \************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var Base64 = __webpack_require__(/*! Base64 */ 209);
+	
+	function b64DecodeUnicode(str) {
+	  return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
+	    var code = p.charCodeAt(0).toString(16).toUpperCase();
+	    if (code.length < 2) {
+	      code = '0' + code;
+	    }
+	    return '%' + code;
+	  }));
+	}
+	
+	module.exports = function(str) {
+	  var output = str.replace(/-/g, "+").replace(/_/g, "/");
+	  switch (output.length % 4) {
+	    case 0:
+	      break;
+	    case 2:
+	      output += "==";
+	      break;
+	    case 3:
+	      output += "=";
+	      break;
+	    default:
+	      throw "Illegal base64url string!";
+	  }
+	
+	  try{
+	    return b64DecodeUnicode(output);
+	  } catch (err) {
+	    return Base64.atob(output);
+	  }
+	};
+
+
+/***/ },
+/* 209 */
+/*!*****************************!*\
+  !*** ../~/Base64/base64.js ***!
+  \*****************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	;(function () {
+	
+	  var
+	    object =  true ? exports : this, // #8: web workers
+	    chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
+	    INVALID_CHARACTER_ERR = (function () {
+	      // fabricate a suitable error object
+	      try { document.createElement('$'); }
+	      catch (error) { return error; }}());
+	
+	  // encoder
+	  // [https://gist.github.com/999166] by [https://github.com/nignag]
+	  object.btoa || (
+	  object.btoa = function (input) {
+	    for (
+	      // initialize result and counter
+	      var block, charCode, idx = 0, map = chars, output = '';
+	      // if the next input index does not exist:
+	      //   change the mapping table to "="
+	      //   check if d has no fractional digits
+	      input.charAt(idx | 0) || (map = '=', idx % 1);
+	      // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8
+	      output += map.charAt(63 & block >> 8 - idx % 1 * 8)
+	    ) {
+	      charCode = input.charCodeAt(idx += 3/4);
+	      if (charCode > 0xFF) throw INVALID_CHARACTER_ERR;
+	      block = block << 8 | charCode;
+	    }
+	    return output;
+	  });
+	
+	  // decoder
+	  // [https://gist.github.com/1020396] by [https://github.com/atk]
+	  object.atob || (
+	  object.atob = function (input) {
+	    input = input.replace(/=+$/, '')
+	    if (input.length % 4 == 1) throw INVALID_CHARACTER_ERR;
+	    for (
+	      // initialize result and counters
+	      var bc = 0, bs, buffer, idx = 0, output = '';
+	      // get next character
+	      buffer = input.charAt(idx++);
+	      // character found in table? initialize bit storage and add its ascii value;
+	      ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+	        // and if not first of each 4 characters,
+	        // convert the first 8 bits to one ascii character
+	        bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+	    ) {
+	      // try to find character in table (0-63, not found => -1)
+	      buffer = chars.indexOf(buffer);
+	    }
+	    return output;
+	  });
+	
+	}());
+
+
+/***/ },
+/* 210 */
+/*!*****************************************!*\
+  !*** ../~/jwt-decode/lib/json_parse.js ***!
+  \*****************************************/
+/***/ function(module, exports) {
+
+	module.exports = function (str) {
+	  var parsed;
+	  if (typeof JSON === 'object') {
+	    parsed = JSON.parse(str);
+	  } else {
+	    parsed = eval('(' + str + ')');
+	  }
+	  return parsed;
+	};
+
+
+/***/ },
+/* 211 */
 /*!***************************!*\
   !*** ./components/app.js ***!
   \***************************/
@@ -268,10 +468,9 @@ webpackJsonp([1],[
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
 	var History = ReactRouter.History;
 	
-	var auth = __webpack_require__(/*! ./auth.js */ 209);
-	var Header = __webpack_require__(/*! ./Header */ 211);
-	var Navigation = __webpack_require__(/*! ./Navigation */ 218);
-	var Sidebar = __webpack_require__(/*! ./Sidebar */ 227);
+	var Header = __webpack_require__(/*! ./Header */ 212);
+	var Navigation = __webpack_require__(/*! ./Navigation */ 217);
+	var Sidebar = __webpack_require__(/*! ./Sidebar */ 260);
 	
 	var App = React.createClass({
 		displayName: "App",
@@ -280,18 +479,14 @@ webpackJsonp([1],[
 	
 		getInitialState: function () {
 			return {
-				loggedIn: auth.loggedIn(),
 				menuVisible: false
 			};
 		},
 		setStateOnAuth: function (loggedIn) {
 			this.setState({ loggedIn: loggedIn });
 		},
-		componentWillMount: function () {
-			auth.onChange = this.setStateOnAuth;
-		},
+		componentWillMount: function () {},
 		logout: function (event) {
-			auth.logout();
 			this.history.pushState(null, '/');
 		},
 		toggleMenu: function () {
@@ -326,108 +521,7 @@ webpackJsonp([1],[
 	module.exports = App;
 
 /***/ },
-/* 209 */
-/*!****************************!*\
-  !*** ./components/auth.js ***!
-  \****************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var $ = __webpack_require__(/*! jquery */ 210);
-	
-	// authentication object
-	var auth = {
-	  register: function (name, email, password, hoa, cb) {
-	    // submit request to server, call the callback when complete
-	    var url = "/api/users/register";
-	    $.ajax({
-	      url: url,
-	      dataType: 'json',
-	      type: 'POST',
-	      data: {
-	        name: name,
-	        email: email,
-	        password: password,
-	        hoa: hoa
-	      },
-	      // on success, store a login token
-	      success: (function (res) {
-	        localStorage.token = res.token;
-	        localStorage.name = res.name;
-	        this.onChange(true);
-	        if (cb) cb(true);
-	      }).bind(this),
-	      error: (function (xhr, status, err) {
-	        console.log('error', err);
-	        // if there is an error, remove any login token
-	        delete localStorage.token;
-	        this.onChange(false);
-	        if (cb) cb(false);
-	      }).bind(this)
-	    });
-	  },
-	  // login the user
-	  login: function (email, password, cb) {
-	    // submit login request to server, call callback when complete
-	    cb = arguments[arguments.length - 1];
-	    // check if token in local storage
-	    if (localStorage.token) {
-	      this.onChange(true);
-	      if (cb) cb(true);
-	      return;
-	    }
-	
-	    // submit request to server
-	    var url = "/api/users/login";
-	    $.ajax({
-	      url: url,
-	      dataType: 'json',
-	      type: 'POST',
-	      data: {
-	        email: email,
-	        password: password
-	      },
-	      success: (function (res) {
-	        // on success, store a login token
-	        localStorage.token = res.token;
-	        localStorage.name = res.name;
-	        this.onChange(true);
-	        if (cb) cb(true);
-	      }).bind(this),
-	      error: (function (xhr, status, err) {
-	        // if there is an error, remove any login token
-	        delete localStorage.token;
-	        this.onChange(false);
-	        if (cb) cb(false);
-	      }).bind(this)
-	    });
-	  },
-	  // get the token from local storage
-	  getToken: function () {
-	    return localStorage.token;
-	  },
-	  // get the name from local storage
-	  getName: function () {
-	    return localStorage.name;
-	  },
-	  // logout the user, call the callback when complete
-	  logout: function (cb) {
-	    delete localStorage.token;
-	    this.onChange(false);
-	    if (cb) cb();
-	  },
-	  // check if user is logged in
-	  loggedIn: function () {
-	    return !!localStorage.token;
-	  },
-	  // default onChange function
-	  onChange: function () {}
-	};
-	
-	module.exports = auth;
-
-/***/ },
-/* 210 */,
-/* 211 */
+/* 212 */
 /*!*************************************!*\
   !*** ./components/Header/Header.js ***!
   \*************************************/
@@ -435,17 +529,17 @@ webpackJsonp([1],[
 
 	var React = __webpack_require__(/*! react */ 1);
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var classNames = __webpack_require__(/*! classnames */ 212);
 	var styles = __webpack_require__(/*! ./Header.css */ 213);
 	var Link = ReactRouter.Link;
-	var Navigation = __webpack_require__(/*! ../Navigation */ 218);
+	var Navigation = __webpack_require__(/*! ../Navigation */ 217);
 	var UserButton = __webpack_require__(/*! ../UserButton */ 221);
+	var jwt = __webpack_require__(/*! ../../services/jwt */ 206);
 	
 	var Header = React.createClass({
 	  displayName: "Header",
 	
 	  getInitialState: function () {
-	    var hoaName = localStorage.hoaName;
+	    var hoaName = jwt.get('hoaName') || 'HOA Cloud';
 	    return {
 	      hoaName: hoaName || 'HOA Cloud'
 	    };
@@ -467,64 +561,6 @@ webpackJsonp([1],[
 	module.exports = Header;
 
 /***/ },
-/* 212 */
-/*!***********************************************************!*\
-  !*** /Users/trentjones21/workspace/~/classnames/index.js ***!
-  \***********************************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	  Copyright (c) 2015 Jed Watson.
-	  Licensed under the MIT License (MIT), see
-	  http://jedwatson.github.io/classnames
-	*/
-	
-	(function () {
-		'use strict';
-	
-		function classNames () {
-	
-			var classes = '';
-	
-			for (var i = 0; i < arguments.length; i++) {
-				var arg = arguments[i];
-				if (!arg) continue;
-	
-				var argType = typeof arg;
-	
-				if ('string' === argType || 'number' === argType) {
-					classes += ' ' + arg;
-	
-				} else if (Array.isArray(arg)) {
-					classes += ' ' + classNames.apply(null, arg);
-	
-				} else if ('object' === argType) {
-					for (var key in arg) {
-						if (arg.hasOwnProperty(key) && arg[key]) {
-							classes += ' ' + key;
-						}
-					}
-				}
-			}
-	
-			return classes.substr(1);
-		}
-	
-		if (typeof module !== 'undefined' && module.exports) {
-			module.exports = classNames;
-		} else if (true){
-			// AMD. Register as an anonymous module.
-			!(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
-				return classNames;
-			}.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else {
-			window.classNames = classNames;
-		}
-	
-	}());
-
-
-/***/ },
 /* 213 */
 /*!**************************************!*\
   !*** ./components/Header/Header.css ***!
@@ -537,8 +573,7 @@ webpackJsonp([1],[
 /* 214 */,
 /* 215 */,
 /* 216 */,
-/* 217 */,
-/* 218 */
+/* 217 */
 /*!*********************************************!*\
   !*** ./components/Navigation/Navigation.js ***!
   \*********************************************/
@@ -548,7 +583,7 @@ webpackJsonp([1],[
 	
 	var React = __webpack_require__(/*! react */ 1);
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var classNames = __webpack_require__(/*! classnames */ 212);
+	var classNames = __webpack_require__(/*! classnames */ 218);
 	var styles = __webpack_require__(/*! ./Navigation.css */ 219);
 	var Link = ReactRouter.Link;
 	
@@ -570,8 +605,12 @@ webpackJsonp([1],[
 				this.props.path ? this.props.path.map(function (part) {
 					return React.createElement(
 						"div",
-						{ key: part.name, className: "part", onClick: part.onClick },
-						part.name,
+						{ key: part.name, className: "part" },
+						React.createElement(
+							"button",
+							{ className: "btn btn-hover", onClick: part.onClick },
+							part.name
+						),
 						React.createElement(
 							"div",
 							{ className: "slash" },
@@ -584,6 +623,63 @@ webpackJsonp([1],[
 	});
 	
 	module.exports = Navigation;
+
+/***/ },
+/* 218 */
+/*!********************************!*\
+  !*** ../~/classnames/index.js ***!
+  \********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	  Copyright (c) 2016 Jed Watson.
+	  Licensed under the MIT License (MIT), see
+	  http://jedwatson.github.io/classnames
+	*/
+	/* global define */
+	
+	(function () {
+		'use strict';
+	
+		var hasOwn = {}.hasOwnProperty;
+	
+		function classNames () {
+			var classes = [];
+	
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (!arg) continue;
+	
+				var argType = typeof arg;
+	
+				if (argType === 'string' || argType === 'number') {
+					classes.push(arg);
+				} else if (Array.isArray(arg)) {
+					classes.push(classNames.apply(null, arg));
+				} else if (argType === 'object') {
+					for (var key in arg) {
+						if (hasOwn.call(arg, key) && arg[key]) {
+							classes.push(key);
+						}
+					}
+				}
+			}
+	
+			return classes.join(' ');
+		}
+	
+		if (typeof module !== 'undefined' && module.exports) {
+			module.exports = classNames;
+		} else if (true) {
+			// register as 'classnames', consistent with npm package name
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
+				return classNames;
+			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else {
+			window.classNames = classNames;
+		}
+	}());
+
 
 /***/ },
 /* 219 */
@@ -605,11 +701,11 @@ webpackJsonp([1],[
 	var React = __webpack_require__(/*! react */ 1);
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
 	var History = ReactRouter.History;
-	var classNames = __webpack_require__(/*! classnames */ 212);
+	var classNames = __webpack_require__(/*! classnames */ 218);
 	var styles = __webpack_require__(/*! ./UserButton.css */ 222);
 	var Link = ReactRouter.Link;
 	var SelectMenu = __webpack_require__(/*! ../SelectMenu */ 224);
-	var Auth = __webpack_require__(/*! ../auth */ 209);
+	var API = __webpack_require__(/*! ../../services/api */ 227);
 	
 	var UserButton = React.createClass({
 		displayName: "UserButton",
@@ -618,8 +714,9 @@ webpackJsonp([1],[
 		getInitialState: function () {
 			return { menuItems: [{
 					text: 'Logout',
+					icon: 'fa-sign-out',
 					callback: function () {
-						Auth.logout(function () {
+						API.auth.logout(function () {
 							window.location.replace('/');
 						});
 					}
@@ -664,7 +761,7 @@ webpackJsonp([1],[
 
 	var React = __webpack_require__(/*! react */ 1);
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var classNames = __webpack_require__(/*! classnames */ 212);
+	var classNames = __webpack_require__(/*! classnames */ 218);
 	var styles = __webpack_require__(/*! ./SelectMenu.css */ 225);
 	var Link = ReactRouter.Link;
 	
@@ -689,6 +786,8 @@ webpackJsonp([1],[
 						React.createElement(
 							"div",
 							{ className: "dropdown-item" },
+							React.createElement("i", { className: 'fa ' + this.props.items[0].icon }),
+							" ",
 							this.props.items[0].text
 						)
 					);
@@ -696,6 +795,8 @@ webpackJsonp([1],[
 					href = React.createElement(
 						"div",
 						{ className: "dropdown-item", onClick: this.props.items[0].callback },
+						React.createElement("i", { className: 'fa ' + this.props.items[0].icon }),
+						" ",
 						this.props.items[0].text
 					);
 				}
@@ -735,590 +836,14 @@ webpackJsonp([1],[
 /***/ },
 /* 226 */,
 /* 227 */
-/*!***************************************!*\
-  !*** ./components/Sidebar/Sidebar.js ***!
-  \***************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(/*! react */ 1);
-	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var classNames = __webpack_require__(/*! classnames */ 212);
-	var styles = __webpack_require__(/*! ./Sidebar.css */ 228);
-	var Link = ReactRouter.Link;
-	
-	var Sidebar = React.createClass({
-		displayName: "Sidebar",
-	
-		handleClick: function (click) {
-			Link.handleClick(click);
-			this.props.toggleMenu();
-		},
-	
-		render: function () {
-			return React.createElement(
-				"div",
-				{ className: classNames(this.props.className, 'Sidebar') },
-				React.createElement(
-					"div",
-					{ className: this.props.menuVisible ? 'Sidebar-menu Sidebar-menu-visible' : 'Sidebar-menu Sidebar-menu-hidden',
-						onClick: this.props.toggleMenu
-					},
-					React.createElement(
-						"h1",
-						null,
-						"Menu ",
-						this.props.menuVisible
-					),
-					React.createElement(
-						"a",
-						{ href: "/", onClick: this.handleClick },
-						React.createElement(
-							"div",
-							{ className: "menu-item" },
-							React.createElement("i", { className: "fa fa-home" }),
-							"Home"
-						)
-					),
-					React.createElement(
-						"a",
-						{ href: "/admin", onClick: this.handleClick },
-						React.createElement(
-							"div",
-							{ className: "menu-item" },
-							React.createElement("i", { className: "fa fa-star" }),
-							"Admin"
-						)
-					),
-					React.createElement(
-						"a",
-						{ href: "#files" },
-						React.createElement(
-							"div",
-							{ className: "menu-item" },
-							React.createElement("i", { className: "fa fa-folder" }),
-							"Files"
-						)
-					),
-					React.createElement(
-						"a",
-						{ href: "/bill-pay", onClick: this.handleClick },
-						React.createElement(
-							"div",
-							{ className: "menu-item" },
-							React.createElement("i", { className: "fa fa-credit-card-alt" }),
-							"Bill pay"
-						)
-					)
-				),
-				React.createElement("div", { className: this.props.menuVisible ? 'Sidebar-screen Sidebar-screen-visible' : 'Sidebar-screen Sidebar-screen-hidden',
-					onClick: this.props.toggleMenu
-				})
-			);
-		}
-	});
-	
-	module.exports = Sidebar;
-
-/***/ },
-/* 228 */
-/*!****************************************!*\
-  !*** ./components/Sidebar/Sidebar.css ***!
-  \****************************************/
-/***/ function(module, exports) {
-
-	// removed by extract-text-webpack-plugin
-
-/***/ },
-/* 229 */,
-/* 230 */
-/*!****************************!*\
-  !*** ./components/home.js ***!
-  \****************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(/*! react */ 1);
-	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	
-	var Link = ReactRouter.Link;
-	
-	// Home page, which shows Login and Register buttons
-	var Home = React.createClass({
-	  displayName: "Home",
-	
-	  render: function () {
-	    return React.createElement(
-	      "p",
-	      null,
-	      React.createElement(
-	        Link,
-	        { className: "btn btn-default", to: "login" },
-	        "Login"
-	      ),
-	      " or ",
-	      React.createElement(
-	        Link,
-	        { className: "btn btn-warning", to: "register" },
-	        "Register"
-	      )
-	    );
-	  }
-	});
-	
-	module.exports = Home;
-
-/***/ },
-/* 231 */
-/*!*****************************!*\
-  !*** ./components/login.js ***!
-  \*****************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(/*! react */ 1);
-	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var History = ReactRouter.History;
-	var Link = ReactRouter.Link;
-	var auth = __webpack_require__(/*! ./auth.js */ 209);
-	
-	// Login page, shows the login form and redirects to the list if login is successful
-	var Login = React.createClass({
-	  displayName: "Login",
-	
-	  // mixin for navigation
-	  mixins: [History],
-	
-	  // initial state
-	  getInitialState: function () {
-	    return {
-	      // there was an error on logging in
-	      error: false
-	    };
-	  },
-	
-	  // handle login button submit
-	  login: function (event) {
-	    // prevent default browser submit
-	    event.preventDefault();
-	    // get data from form
-	    var email = this.refs.email.value;
-	    var password = this.refs.password.value;
-	    if (!email || !password) {
-	      return;
-	    }
-	    // login via API
-	    auth.login(email, password, (function (loggedIn) {
-	      // login callback
-	      if (!loggedIn) return this.setState({
-	        error: true
-	      });
-	      this.history.pushState(null, '/list');
-	    }).bind(this));
-	  },
-	
-	  // show the login form
-	  render: function () {
-	    return React.createElement(
-	      "div",
-	      { className: "Login" },
-	      React.createElement(
-	        "h2",
-	        null,
-	        "Login  ",
-	        React.createElement(
-	          "small",
-	          null,
-	          "or ",
-	          React.createElement(
-	            Link,
-	            { to: "/register" },
-	            "register"
-	          )
-	        )
-	      ),
-	      React.createElement(
-	        "form",
-	        { className: "form-vertical", onSubmit: this.login },
-	        React.createElement("input", { type: "text", placeholder: "Username", ref: "email", autoFocus: true }),
-	        React.createElement("input", { type: "password", placeholder: "Password", ref: "password" }),
-	        React.createElement("input", { className: "btn btn-warning", type: "submit", value: "Login" }),
-	        this.state.error ? React.createElement(
-	          "div",
-	          { className: "alert" },
-	          "Invalid email or password."
-	        ) : null
-	      )
-	    );
-	  }
-	});
-	
-	module.exports = Login;
-
-/***/ },
-/* 232 */
-/*!*****************************************!*\
-  !*** ./components/Register/Register.js ***!
-  \*****************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(/*! react */ 1);
-	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var History = ReactRouter.History;
-	var style = __webpack_require__(/*! ./Register.css */ 233);
-	var auth = __webpack_require__(/*! ../auth.js */ 209);
-	var HOASearch = __webpack_require__(/*! ../HOASearch */ 235);
-	var Link = ReactRouter.Link;
-	var API = __webpack_require__(/*! ../../services/api */ 239);
-	
-	var Register = React.createClass({
-		displayName: "Register",
-	
-		mixins: [History],
-		getInitialState: function () {
-			return {
-				error: false
-			};
-		},
-		register: function (event) {
-			event.preventDefault();
-			var name = this.refs.firstname.value + ' ' + this.refs.lastname.value;
-			var firstname = this.refs.firstname.value;
-			var lastname = this.refs.lastname.value;
-			var email = this.refs.email.value;
-			var password = this.refs.password.value;
-			var hoa = this.state.selectedHoa;
-			if (!name || !email || !password || !hoa) {
-				return;
-			}
-			auth.register(name, email, password, hoa.name, (function (loggedIn) {
-				if (!loggedIn) return this.setState({
-					error: true
-				});
-				this.history.pushState(null, '/home');
-			}).bind(this));
-			API.auth.register({
-				firstName: firstname,
-				lastName: lastname,
-				email: email,
-				password: password,
-				hoaId: hoa.id
-			});
-		},
-		onHoaSelect: function (hoa) {
-			this.setState({ selectedHoa: hoa });
-		},
-		changeSelectedHoa: function () {
-			this.setState({ selectedHoa: undefined });
-		},
-		render: function () {
-			return React.createElement(
-				"div",
-				{ className: "Register" },
-				React.createElement(
-					"h2",
-					null,
-					"Register ",
-					React.createElement(
-						"small",
-						null,
-						"or ",
-						React.createElement(
-							Link,
-							{ to: "/login" },
-							"login"
-						)
-					)
-				),
-				this.state.selectedHoa ? React.createElement(
-					"h3",
-					null,
-					React.createElement(
-						"small",
-						null,
-						"Registering as memeber of"
-					),
-					React.createElement("br", null),
-					this.state.selectedHoa.name,
-					React.createElement(
-						"small",
-						{ className: "change-button", onClick: this.changeSelectedHoa },
-						" change"
-					)
-				) : React.createElement(
-					"div",
-					null,
-					"Start by typing the name of your HOA",
-					React.createElement(HOASearch, { onHoaSelect: this.onHoaSelect })
-				),
-				this.state.selectedHoa ? React.createElement(
-					"form",
-					{ className: "form form-vertical", onSubmit: this.register },
-					React.createElement(
-						"div",
-						{ className: "form-group" },
-						React.createElement(
-							"label",
-							null,
-							"First Name"
-						),
-						React.createElement("input", { className: "form-control", type: "text", placeholder: "Name", ref: "firstname", autoFocus: true })
-					),
-					React.createElement(
-						"div",
-						{ className: "form-group" },
-						React.createElement(
-							"label",
-							null,
-							"Last Name"
-						),
-						React.createElement("input", { className: "form-control", type: "text", placeholder: "Name", ref: "lastname", autoFocus: true })
-					),
-					React.createElement(
-						"div",
-						{ className: "form-group" },
-						React.createElement(
-							"label",
-							null,
-							"Email"
-						),
-						React.createElement("input", { className: "form-control", type: "text", placeholder: "Email", ref: "email" })
-					),
-					React.createElement(
-						"div",
-						{ className: "form-group" },
-						React.createElement(
-							"label",
-							null,
-							"Password"
-						),
-						React.createElement("input", { className: "form-control", type: "password", placeholder: "Password", ref: "password" })
-					),
-					React.createElement(
-						"div",
-						{ className: "form-group" },
-						React.createElement("input", { className: "btn btn-primary", type: "submit", value: "Register" })
-					),
-					this.state.error ? React.createElement(
-						"div",
-						{ className: "alert" },
-						"Invalid email or password."
-					) : null
-				) : ''
-			);
-		}
-	});
-	
-	module.exports = Register;
-
-/***/ },
-/* 233 */
-/*!******************************************!*\
-  !*** ./components/Register/Register.css ***!
-  \******************************************/
-/***/ function(module, exports) {
-
-	// removed by extract-text-webpack-plugin
-
-/***/ },
-/* 234 */,
-/* 235 */
-/*!*******************************************!*\
-  !*** ./components/HOASearch/HOASearch.js ***!
-  \*******************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(/*! react */ 1);
-	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var classNames = __webpack_require__(/*! classnames */ 212);
-	var styles = __webpack_require__(/*! ./HOASearch.css */ 236);
-	var Link = ReactRouter.Link;
-	var api = __webpack_require__(/*! ../api */ 238);
-	var API = __webpack_require__(/*! ../../services/api */ 239);
-	var _ = __webpack_require__(/*! underscore */ 265);
-	
-	var HOASearch = React.createClass({
-		displayName: "HOASearch",
-	
-		componentWillMount: function () {
-			var self = this;
-			this.setState({ hoas: null, visibleHoas: [] });
-			API.hoa.getAll().then(function (data) {
-				self.setState({ hoas: data.data, visibleHoas: [] });
-			});
-		},
-		onChange: function (t) {
-			var prefix = t.target.value;
-			var visible = _.filter(this.state.hoas, function (hoa) {
-				var item = hoa.name.toLowerCase();
-				prefix = prefix.toLowerCase();
-				return prefix.length >= 3 && item.slice(0, prefix.length) == prefix;
-			});
-			this.setState({ visibleHoas: visible });
-		},
-		setSelectedHoa: function (hoa) {
-			this.setState({ selectedHoa: hoa });
-			this.props.onHoaSelect(hoa);
-		},
-		render: function () {
-			var self = this;
-			return React.createElement(
-				"div",
-				{ className: "HOASearch" },
-				React.createElement("input", { type: "text", placeholder: "HOA Name", className: "input", onChange: this.onChange }),
-				React.createElement(
-					"div",
-					{ className: "results" },
-					this.state.visibleHoas.map(function (item) {
-						return React.createElement(
-							"div",
-							{ className: "hoa-result", key: item.id, onClick: self.setSelectedHoa.bind(null, item) },
-							item.name
-						);
-					})
-				)
-			);
-		}
-	});
-	
-	module.exports = HOASearch;
-
-/***/ },
-/* 236 */
-/*!********************************************!*\
-  !*** ./components/HOASearch/HOASearch.css ***!
-  \********************************************/
-/***/ function(module, exports) {
-
-	// removed by extract-text-webpack-plugin
-
-/***/ },
-/* 237 */,
-/* 238 */
-/*!***************************!*\
-  !*** ./components/api.js ***!
-  \***************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	var $ = __webpack_require__(/*! jquery */ 210);
-	
-	// API object
-	var api = {
-	  // get the list of items, call the callback when complete
-	  getItems: function (cb) {
-	    var url = "/api/items";
-	    $.ajax({
-	      url: url,
-	      dataType: 'json',
-	      type: 'GET',
-	      headers: { 'Authorization': localStorage.token },
-	      success: function (res) {
-	        if (cb) cb(true, res);
-	      },
-	      error: function (xhr, status, err) {
-	        // if there is an error, remove the login token
-	        delete localStorage.token;
-	        if (cb) cb(false, status);
-	      }
-	    });
-	  },
-	  // get the list of items, call the callback when complete
-	  getHoa: function (cb) {
-	    console.log('getting hoa');
-	    var url = "/api/hoas";
-	    $.ajax({
-	      url: url,
-	      dataType: 'json',
-	      type: 'GET',
-	      headers: { 'Authorization': localStorage.token },
-	      success: function (res) {
-	        console.log('res', res);
-	        if (cb) cb(true, res);
-	      },
-	      error: function (xhr, status, err) {
-	        console.log('err', err);
-	        // if there is an error, remove the login token
-	        delete localStorage.token;
-	        if (cb) cb(false, status);
-	      }
-	    });
-	  },
-	  // add an item, call the callback when complete
-	  addItem: function (title, cb) {
-	    var url = "/api/items";
-	    $.ajax({
-	      url: url,
-	      contentType: 'application/json',
-	      data: JSON.stringify({
-	        item: {
-	          'title': title
-	        }
-	      }),
-	      type: 'POST',
-	      headers: { 'Authorization': localStorage.token },
-	      success: function (res) {
-	        if (cb) cb(true, res);
-	      },
-	      error: function (xhr, status, err) {
-	        // if there is an error, remove the login token
-	        delete localStorage.token;
-	        if (cb) cb(false, status);
-	      }
-	    });
-	  },
-	  // update an item, call the callback when complete
-	  updateItem: function (item, cb) {
-	    var url = "/api/items/" + item.id;
-	    $.ajax({
-	      url: url,
-	      contentType: 'application/json',
-	      data: JSON.stringify({
-	        item: {
-	          title: item.title,
-	          completed: item.completed
-	        }
-	      }),
-	      type: 'PUT',
-	      headers: { 'Authorization': localStorage.token },
-	      success: function (res) {
-	        if (cb) cb(true, res);
-	      },
-	      error: function (xhr, status, err) {
-	        // if there is any error, remove any login token
-	        delete localStorage.token;
-	        if (cb) cb(false, status);
-	      }
-	    });
-	  },
-	  // delete an item, call the callback when complete
-	  deleteItem: function (item, cb) {
-	    var url = "/api/items/" + item.id;
-	    $.ajax({
-	      url: url,
-	      type: 'DELETE',
-	      headers: { 'Authorization': localStorage.token },
-	      success: function (res) {
-	        if (cb) cb(true, res);
-	      },
-	      error: function (xhr, status, err) {
-	        // if there is an error, remove any login token
-	        delete localStorage.token;
-	        if (cb) cb(false, status);
-	      }
-	    });
-	  }
-	
-	};
-	
-	module.exports = api;
-
-/***/ },
-/* 239 */
 /*!*************************************!*\
   !*** ./services/api/api.service.js ***!
   \*************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var hoa = __webpack_require__(/*! ../hoa */ 240);
-	var file = __webpack_require__(/*! ../file */ 254);
-	var auth = __webpack_require__(/*! ../auth */ 264);
+	var hoa = __webpack_require__(/*! ../hoa */ 228);
+	var file = __webpack_require__(/*! ../file */ 249);
+	var auth = __webpack_require__(/*! ../auth */ 259);
 	
 	var api = {
 		hoa: hoa,
@@ -1329,33 +854,34 @@ webpackJsonp([1],[
 	module.exports = api;
 
 /***/ },
-/* 240 */
+/* 228 */
 /*!*****************************!*\
   !*** ./services/hoa/hoa.js ***!
   \*****************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var request = __webpack_require__(/*! axios */ 241);
-	
+	var request = __webpack_require__(/*! axios */ 229);
+	var config = __webpack_require__(/*! ../config */ 242);
+	var api = config.get('api');
 	var hoa = {
 		getAll: function () {
-			return request.get('http://localhost:3009/api/auth/register/hoas');
+			return request.get(api + '/auth/register/hoas');
 		}
 	};
 	
 	module.exports = hoa;
 
 /***/ },
-/* 241 */
+/* 229 */
 /*!***************************!*\
   !*** ../~/axios/index.js ***!
   \***************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(/*! ./lib/axios */ 242);
+	module.exports = __webpack_require__(/*! ./lib/axios */ 230);
 
 /***/ },
-/* 242 */
+/* 230 */
 /*!*******************************!*\
   !*** ../~/axios/lib/axios.js ***!
   \*******************************/
@@ -1363,10 +889,10 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var defaults = __webpack_require__(/*! ./defaults */ 243);
-	var utils = __webpack_require__(/*! ./utils */ 244);
-	var dispatchRequest = __webpack_require__(/*! ./core/dispatchRequest */ 245);
-	var InterceptorManager = __webpack_require__(/*! ./core/InterceptorManager */ 252);
+	var defaults = __webpack_require__(/*! ./defaults */ 231);
+	var utils = __webpack_require__(/*! ./utils */ 232);
+	var dispatchRequest = __webpack_require__(/*! ./core/dispatchRequest */ 233);
+	var InterceptorManager = __webpack_require__(/*! ./core/InterceptorManager */ 240);
 	
 	var axios = module.exports = function (config) {
 	  // Allow for axios('example/url'[, config]) a la fetch API
@@ -1413,7 +939,7 @@ webpackJsonp([1],[
 	axios.all = function (promises) {
 	  return Promise.all(promises);
 	};
-	axios.spread = __webpack_require__(/*! ./helpers/spread */ 253);
+	axios.spread = __webpack_require__(/*! ./helpers/spread */ 241);
 	
 	// Expose interceptors
 	axios.interceptors = {
@@ -1452,7 +978,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 243 */
+/* 231 */
 /*!**********************************!*\
   !*** ../~/axios/lib/defaults.js ***!
   \**********************************/
@@ -1460,7 +986,7 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var utils = __webpack_require__(/*! ./utils */ 244);
+	var utils = __webpack_require__(/*! ./utils */ 232);
 	
 	var PROTECTION_PREFIX = /^\)\]\}',?\n/;
 	var DEFAULT_CONTENT_TYPE = {
@@ -1523,7 +1049,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 244 */
+/* 232 */
 /*!*******************************!*\
   !*** ../~/axios/lib/utils.js ***!
   \*******************************/
@@ -1781,7 +1307,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 245 */
+/* 233 */
 /*!**********************************************!*\
   !*** ../~/axios/lib/core/dispatchRequest.js ***!
   \**********************************************/
@@ -1801,11 +1327,11 @@ webpackJsonp([1],[
 	    try {
 	      // For browsers use XHR adapter
 	      if ((typeof XMLHttpRequest !== 'undefined') || (typeof ActiveXObject !== 'undefined')) {
-	        __webpack_require__(/*! ../adapters/xhr */ 246)(resolve, reject, config);
+	        __webpack_require__(/*! ../adapters/xhr */ 234)(resolve, reject, config);
 	      }
 	      // For node use HTTP adapter
 	      else if (typeof process !== 'undefined') {
-	        __webpack_require__(/*! ../adapters/http */ 246)(resolve, reject, config);
+	        __webpack_require__(/*! ../adapters/http */ 234)(resolve, reject, config);
 	      }
 	    } catch (e) {
 	      reject(e);
@@ -1817,7 +1343,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/process/browser.js */ 4)))
 
 /***/ },
-/* 246 */
+/* 234 */
 /*!**************************************!*\
   !*** ../~/axios/lib/adapters/xhr.js ***!
   \**************************************/
@@ -1827,11 +1353,11 @@ webpackJsonp([1],[
 	
 	/*global ActiveXObject:true*/
 	
-	var defaults = __webpack_require__(/*! ./../defaults */ 243);
-	var utils = __webpack_require__(/*! ./../utils */ 244);
-	var buildUrl = __webpack_require__(/*! ./../helpers/buildUrl */ 247);
-	var parseHeaders = __webpack_require__(/*! ./../helpers/parseHeaders */ 248);
-	var transformData = __webpack_require__(/*! ./../helpers/transformData */ 249);
+	var defaults = __webpack_require__(/*! ./../defaults */ 231);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
+	var buildUrl = __webpack_require__(/*! ./../helpers/buildUrl */ 235);
+	var parseHeaders = __webpack_require__(/*! ./../helpers/parseHeaders */ 236);
+	var transformData = __webpack_require__(/*! ./../helpers/transformData */ 237);
 	
 	module.exports = function xhrAdapter(resolve, reject, config) {
 	  // Transform request data
@@ -1891,8 +1417,8 @@ webpackJsonp([1],[
 	  // This is only done if running in a standard browser environment.
 	  // Specifically not if we're in a web worker, or react-native.
 	  if (utils.isStandardBrowserEnv()) {
-	    var cookies = __webpack_require__(/*! ./../helpers/cookies */ 250);
-	    var urlIsSameOrigin = __webpack_require__(/*! ./../helpers/urlIsSameOrigin */ 251);
+	    var cookies = __webpack_require__(/*! ./../helpers/cookies */ 238);
+	    var urlIsSameOrigin = __webpack_require__(/*! ./../helpers/urlIsSameOrigin */ 239);
 	
 	    // Add xsrf header
 	    var xsrfValue = urlIsSameOrigin(config.url) ?
@@ -1942,7 +1468,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 247 */
+/* 235 */
 /*!******************************************!*\
   !*** ../~/axios/lib/helpers/buildUrl.js ***!
   \******************************************/
@@ -1950,7 +1476,7 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var utils = __webpack_require__(/*! ./../utils */ 244);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
 	
 	function encode(val) {
 	  return encodeURIComponent(val).
@@ -2010,7 +1536,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 248 */
+/* 236 */
 /*!**********************************************!*\
   !*** ../~/axios/lib/helpers/parseHeaders.js ***!
   \**********************************************/
@@ -2018,7 +1544,7 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var utils = __webpack_require__(/*! ./../utils */ 244);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
 	
 	/**
 	 * Parse headers into an object
@@ -2053,7 +1579,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 249 */
+/* 237 */
 /*!***********************************************!*\
   !*** ../~/axios/lib/helpers/transformData.js ***!
   \***********************************************/
@@ -2061,7 +1587,7 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var utils = __webpack_require__(/*! ./../utils */ 244);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
 	
 	/**
 	 * Transform the data for a request or a response
@@ -2081,7 +1607,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 250 */
+/* 238 */
 /*!*****************************************!*\
   !*** ../~/axios/lib/helpers/cookies.js ***!
   \*****************************************/
@@ -2095,7 +1621,7 @@ webpackJsonp([1],[
 	 *  Please see lib/utils.isStandardBrowserEnv before including this file.
 	 */
 	
-	var utils = __webpack_require__(/*! ./../utils */ 244);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
 	
 	module.exports = {
 	  write: function write(name, value, expires, path, domain, secure) {
@@ -2133,7 +1659,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 251 */
+/* 239 */
 /*!*************************************************!*\
   !*** ../~/axios/lib/helpers/urlIsSameOrigin.js ***!
   \*************************************************/
@@ -2147,7 +1673,7 @@ webpackJsonp([1],[
 	 *  Please see lib/utils.isStandardBrowserEnv before including this file.
 	 */
 	
-	var utils = __webpack_require__(/*! ./../utils */ 244);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
 	var msie = /(msie|trident)/i.test(navigator.userAgent);
 	var urlParsingNode = document.createElement('a');
 	var originUrl;
@@ -2200,7 +1726,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 252 */
+/* 240 */
 /*!*************************************************!*\
   !*** ../~/axios/lib/core/InterceptorManager.js ***!
   \*************************************************/
@@ -2208,7 +1734,7 @@ webpackJsonp([1],[
 
 	'use strict';
 	
-	var utils = __webpack_require__(/*! ./../utils */ 244);
+	var utils = __webpack_require__(/*! ./../utils */ 232);
 	
 	function InterceptorManager() {
 	  this.handlers = [];
@@ -2261,7 +1787,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 253 */
+/* 241 */
 /*!****************************************!*\
   !*** ../~/axios/lib/helpers/spread.js ***!
   \****************************************/
@@ -2297,15 +1823,137 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 254 */
+/* 242 */
+/*!***********************************!*\
+  !*** ./services/config/config.js ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {var GHOSTNAME = process.env.GHOSTNAME,
+	    Config = __webpack_require__(/*! ../../config/dev/trent */ 243);
+	if (GHOSTNAME) {
+		var ghostString = GHOSTNAME.replace('.', '/');
+		var Config = __webpack_require__(/*! ../../config */ 244)("./" + ghostString);
+	}
+	
+	var config = {
+		get: function (path) {
+			var parts = path.split('.');
+	
+			var current = Config;
+			for (var i in parts) {
+				current = current[parts[i]];
+			}
+	
+			return current;
+		}
+	};
+	
+	module.exports = config;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/process/browser.js */ 4)))
+
+/***/ },
+/* 243 */
+/*!**************************************!*\
+  !*** ./config/dev/trent/config.json ***!
+  \**************************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"api": "http://localhost:3009/api"
+	};
+
+/***/ },
+/* 244 */
+/*!*************************!*\
+  !*** ./config ^\.\/.*$ ***!
+  \*************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var map = {
+		"./dev/dev/config": 245,
+		"./dev/dev/config.json": 245,
+		"./dev/trent/config": 243,
+		"./dev/trent/config.json": 243,
+		"./dev/trent/package": 246,
+		"./dev/trent/package.json": 246,
+		"./prod/config": 247,
+		"./prod/config.json": 247,
+		"./prod/package": 248,
+		"./prod/package.json": 248
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 244;
+
+
+/***/ },
+/* 245 */
+/*!************************************!*\
+  !*** ./config/dev/dev/config.json ***!
+  \************************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"api": "http://104.131.184.169:3009/api"
+	};
+
+/***/ },
+/* 246 */
+/*!***************************************!*\
+  !*** ./config/dev/trent/package.json ***!
+  \***************************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"name": "trent",
+		"main": "config.json"
+	};
+
+/***/ },
+/* 247 */
+/*!*********************************!*\
+  !*** ./config/prod/config.json ***!
+  \*********************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"api": "http://162.243.153.37:3009/api"
+	};
+
+/***/ },
+/* 248 */
+/*!**********************************!*\
+  !*** ./config/prod/package.json ***!
+  \**********************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"name": "prod",
+		"main": "config.json"
+	};
+
+/***/ },
+/* 249 */
 /*!*******************************!*\
   !*** ./services/file/file.js ***!
   \*******************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var request = __webpack_require__(/*! axios */ 241);
-	var fileSaver = __webpack_require__(/*! ../file-saver */ 259);
-	var q = __webpack_require__(/*! q */ 262);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var request = __webpack_require__(/*! axios */ 229),
+	    fileSaver = __webpack_require__(/*! ../file-saver */ 254),
+	    q = __webpack_require__(/*! q */ 257),
+	    config = __webpack_require__(/*! ../config */ 242),
+	    api = config.get('api');
 	
 	var getContentType = function (extension) {
 		var map = {
@@ -2318,13 +1966,13 @@ webpackJsonp([1],[
 	
 	var file = {
 		get: function () {
-			return request.get('http://localhost:3009/api/g/files', {
+			return request.get(api + '/g/files', {
 				headers: { 'x-access-token': localStorage.ghost }
 			});
 		},
 		download: function (filename) {
 			var deferred = q.defer();
-			request.get('http://localhost:3009/api/g/files/' + encodeURIComponent(filename), {
+			request.get(api + '/g/files/' + encodeURIComponent(filename), {
 				headers: { 'x-access-token': localStorage.ghost }
 			}).then(function (data) {
 				var buf = new Buffer(data.data, 'base64'),
@@ -2341,14 +1989,54 @@ webpackJsonp([1],[
 			});
 	
 			return deferred.promise;
+		},
+		upload: function (file, path) {
+			var options = {
+				headers: {
+					'Content-Type': file.type,
+					'x-access-token': localStorage.ghost,
+					'g-file-name': file.name,
+					'g-path': path
+				}
+			};
+			return request.post(api + '/g/files', file, options);
+		},
+		createFolder: function (folderPath) {
+			return request.post(api + '/g/folders', {
+				folderPath: folderPath
+			}, {
+				headers: { 'x-access-token': localStorage.ghost }
+			});
+		},
+		deleteFile: function (filePath) {
+			return request.delete(api + '/g/files/' + encodeURIComponent(filePath), {
+				headers: { 'x-access-token': localStorage.ghost }
+			});
+		},
+		moveFile: function (filePath, destinationFolder) {
+			return request.post(api + '/g/files/move', {
+				filePath: filePath,
+				newPath: destinationFolder
+			}, {
+				headers: { 'x-access-token': localStorage.ghost }
+			});
+		},
+		renameFile: function (oldPath, newPath) {
+			return request.put(api + '/g/files/', {
+				oldPath: oldPath,
+				newPath: newPath
+			}, {
+				headers: { 'x-access-token': localStorage.ghost }
+			});
 		}
+	
 	};
 	
 	module.exports = file;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/buffer/index.js */ 255).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/buffer/index.js */ 250).Buffer))
 
 /***/ },
-/* 255 */
+/* 250 */
 /*!****************************!*\
   !*** ../~/buffer/index.js ***!
   \****************************/
@@ -2362,9 +2050,11 @@ webpackJsonp([1],[
 	 */
 	/* eslint-disable no-proto */
 	
-	var base64 = __webpack_require__(/*! base64-js */ 256)
-	var ieee754 = __webpack_require__(/*! ieee754 */ 257)
-	var isArray = __webpack_require__(/*! is-array */ 258)
+	'use strict'
+	
+	var base64 = __webpack_require__(/*! base64-js */ 251)
+	var ieee754 = __webpack_require__(/*! ieee754 */ 252)
+	var isArray = __webpack_require__(/*! isarray */ 253)
 	
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -2444,8 +2134,10 @@ webpackJsonp([1],[
 	    return new Buffer(arg)
 	  }
 	
-	  this.length = 0
-	  this.parent = undefined
+	  if (!Buffer.TYPED_ARRAY_SUPPORT) {
+	    this.length = 0
+	    this.parent = undefined
+	  }
 	
 	  // Common case.
 	  if (typeof arg === 'number') {
@@ -2576,6 +2268,10 @@ webpackJsonp([1],[
 	if (Buffer.TYPED_ARRAY_SUPPORT) {
 	  Buffer.prototype.__proto__ = Uint8Array.prototype
 	  Buffer.__proto__ = Uint8Array
+	} else {
+	  // pre-set for values that may exist in the future
+	  Buffer.prototype.length = undefined
+	  Buffer.prototype.parent = undefined
 	}
 	
 	function allocate (that, length) {
@@ -2725,10 +2421,6 @@ webpackJsonp([1],[
 	  }
 	}
 	Buffer.byteLength = byteLength
-	
-	// pre-set for values that may exist in the future
-	Buffer.prototype.length = undefined
-	Buffer.prototype.parent = undefined
 	
 	function slowToString (encoding, start, end) {
 	  var loweredCase = false
@@ -3899,10 +3591,10 @@ webpackJsonp([1],[
 	  return i
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/buffer/index.js */ 255).Buffer, (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/buffer/index.js */ 250).Buffer, (function() { return this; }())))
 
 /***/ },
-/* 256 */
+/* 251 */
 /*!*********************************!*\
   !*** ../~/base64-js/lib/b64.js ***!
   \*********************************/
@@ -4035,7 +3727,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 257 */
+/* 252 */
 /*!*****************************!*\
   !*** ../~/ieee754/index.js ***!
   \*****************************/
@@ -4128,49 +3820,21 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 258 */
-/*!******************************!*\
-  !*** ../~/is-array/index.js ***!
-  \******************************/
+/* 253 */
+/*!**************************************!*\
+  !*** ../~/buffer/~/isarray/index.js ***!
+  \**************************************/
 /***/ function(module, exports) {
 
+	var toString = {}.toString;
 	
-	/**
-	 * isArray
-	 */
-	
-	var isArray = Array.isArray;
-	
-	/**
-	 * toString
-	 */
-	
-	var str = Object.prototype.toString;
-	
-	/**
-	 * Whether or not the given `val`
-	 * is an array.
-	 *
-	 * example:
-	 *
-	 *        isArray([]);
-	 *        // > true
-	 *        isArray(arguments);
-	 *        // > false
-	 *        isArray('');
-	 *        // > false
-	 *
-	 * @param {mixed} val
-	 * @return {bool}
-	 */
-	
-	module.exports = isArray || function (val) {
-	  return !! val && '[object Array]' == str.call(val);
+	module.exports = Array.isArray || function (arr) {
+	  return toString.call(arr) == '[object Array]';
 	};
 
 
 /***/ },
-/* 259 */
+/* 254 */
 /*!*******************************************!*\
   !*** ./services/file-saver/file-saver.js ***!
   \*******************************************/
@@ -4190,10 +3854,10 @@ webpackJsonp([1],[
 	
 	/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
 	
-	var saveAs = saveAs || (function (view) {
-		"use strict"
+	var saveAs = saveAs || function (view) {
+		"use strict";
 		// IE <10 is explicitly unsupported
-		;
+	
 		if (typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
 			return;
 		}
@@ -4426,21 +4090,21 @@ webpackJsonp([1],[
 		FS_proto.error = FS_proto.onwritestart = FS_proto.onprogress = FS_proto.onwrite = FS_proto.onabort = FS_proto.onerror = FS_proto.onwriteend = null;
 	
 		return saveAs;
-	})(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content);
+	}(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content);
 	// `self` is undefined in Firefox for Android content script context
 	// while `this` is nsIContentFrameMessageManager
 	// with an attribute `content` that corresponds to the window
 	
 	if (typeof module !== "undefined" && module.exports) {
 		module.exports.saveAs = saveAs;
-	} else if ("function" !== "undefined" && __webpack_require__(/*! !webpack amd define */ 260) !== null && __webpack_require__(/*! !webpack amd options */ 261) != null) {
+	} else if ("function" !== "undefined" && __webpack_require__(/*! !webpack amd define */ 255) !== null && __webpack_require__(/*! !webpack amd options */ 256) != null) {
 		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
 			return saveAs;
 		}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	}
 
 /***/ },
-/* 260 */
+/* 255 */
 /*!******************************************!*\
   !*** ../~/webpack/buildin/amd-define.js ***!
   \******************************************/
@@ -4450,7 +4114,7 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 261 */
+/* 256 */
 /*!*******************************************!*\
   !*** ../~/webpack/buildin/amd-options.js ***!
   \*******************************************/
@@ -4461,7 +4125,7 @@ webpackJsonp([1],[
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 262 */
+/* 257 */
 /*!*******************!*\
   !*** ../~/q/q.js ***!
   \*******************/
@@ -6516,10 +6180,10 @@ webpackJsonp([1],[
 	
 	});
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/process/browser.js */ 4), __webpack_require__(/*! ../~/timers-browserify/main.js */ 263).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/process/browser.js */ 4), __webpack_require__(/*! ../~/timers-browserify/main.js */ 258).setImmediate))
 
 /***/ },
-/* 263 */
+/* 258 */
 /*!**************************************!*\
   !*** ../~/timers-browserify/main.js ***!
   \**************************************/
@@ -6601,43 +6265,375 @@ webpackJsonp([1],[
 	exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
 	  delete immediateIds[id];
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/timers-browserify/main.js */ 263).setImmediate, __webpack_require__(/*! ../~/timers-browserify/main.js */ 263).clearImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ../~/timers-browserify/main.js */ 258).setImmediate, __webpack_require__(/*! ../~/timers-browserify/main.js */ 258).clearImmediate))
 
 /***/ },
-/* 264 */
+/* 259 */
 /*!*******************************!*\
   !*** ./services/auth/auth.js ***!
   \*******************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var request = __webpack_require__(/*! axios */ 241);
+	var request = __webpack_require__(/*! axios */ 229);
+	var config = __webpack_require__(/*! ../config */ 242);
+	var api = config.get('api');
+	var q = __webpack_require__(/*! q */ 257);
 	
 	var auth = {
-		login: function () {
-			request.post('http://localhost:3009/api/auth/login', {
-				email: 'trentjones21@gmail.com',
-				password: 'test'
-			}).then(function (data) {
-				console.log('data', data);
+		login: function (params) {
+			return request.post(api + '/auth/login', params).then(function (data) {
+				localStorage.ghost = data.data.token;
+				return data.data;
 			}).catch(function (error) {
 				console.log('error', error);
 			});
 		},
 		register: function (params) {
-			request.post('http://localhost:3009/api/auth/register', params).then(function (data) {
+			return request.post(api + '/auth/register', params).then(function (data) {
 				localStorage.ghost = data.data.token;
-				console.log('data', data);
+			}).catch(function (error) {
+				console.log('error', error);
+			});
+		},
+		logout: function (cb) {
+			delete localStorage.ghost;
+			if (!!cb) cb();
+		},
+		loginGuest: function (params) {
+			return request.post(api + '/auth/login-guest', params).then(function (data) {
+				localStorage.ghost = data.data.token;
+				return data.data;
 			}).catch(function (error) {
 				console.log('error', error);
 			});
 		}
-	
 	};
 	
 	module.exports = auth;
 
 /***/ },
+/* 260 */
+/*!***************************************!*\
+  !*** ./components/Sidebar/Sidebar.js ***!
+  \***************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./Sidebar.css */ 261);
+	var Link = ReactRouter.Link;
+	
+	var Sidebar = React.createClass({
+		displayName: "Sidebar",
+	
+		handleClick: function (click) {
+			Link.handleClick(click);
+			this.props.toggleMenu();
+		},
+	
+		render: function () {
+			return React.createElement(
+				"div",
+				{ className: classNames(this.props.className, 'Sidebar') },
+				React.createElement(
+					"div",
+					{ className: this.props.menuVisible ? 'Sidebar-menu Sidebar-menu-visible' : 'Sidebar-menu Sidebar-menu-hidden',
+						onClick: this.props.toggleMenu
+					},
+					React.createElement(
+						"h1",
+						null,
+						"Menu ",
+						this.props.menuVisible
+					),
+					React.createElement(
+						"div",
+						{ className: "menu-item" },
+						React.createElement("i", { className: "fa fa-home" }),
+						"Home ",
+						React.createElement(
+							"small",
+							{ className: "coming-soon" },
+							"coming soon!"
+						)
+					),
+					React.createElement(
+						"a",
+						{ href: "#files" },
+						React.createElement(
+							"div",
+							{ className: "menu-item" },
+							React.createElement("i", { className: "fa fa-folder" }),
+							"Files"
+						)
+					),
+					React.createElement(
+						"div",
+						{ className: "menu-item" },
+						React.createElement("i", { className: "fa fa-credit-card-alt" }),
+						"Bill pay ",
+						React.createElement(
+							"small",
+							{ className: "coming-soon" },
+							"coming soon!"
+						)
+					)
+				),
+				React.createElement("div", { className: this.props.menuVisible ? 'Sidebar-screen Sidebar-screen-visible' : 'Sidebar-screen Sidebar-screen-hidden',
+					onClick: this.props.toggleMenu
+				})
+			);
+		}
+	});
+	
+	module.exports = Sidebar;
+
+/***/ },
+/* 261 */
+/*!****************************************!*\
+  !*** ./components/Sidebar/Sidebar.css ***!
+  \****************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 262 */,
+/* 263 */
+/*!****************************!*\
+  !*** ./components/home.js ***!
+  \****************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	
+	var Link = ReactRouter.Link;
+	
+	// Home page, which shows Login and Register buttons
+	var Home = React.createClass({
+		displayName: "Home",
+	
+		render: function () {
+			return React.createElement(
+				"div",
+				null,
+				React.createElement(
+					"h1",
+					null,
+					"Welcome to HOA Cloud"
+				),
+				React.createElement(
+					"h3",
+					null,
+					"Our cloud-based HOA software introduces transparency to communities by providing 24/7 access to bill pay, announcements, voting, a member directory, and all community documents."
+				),
+				React.createElement("br", null),
+				React.createElement("br", null),
+				React.createElement(
+					"p",
+					null,
+					React.createElement(
+						Link,
+						{ className: "btn btn-default", to: "login" },
+						"Login"
+					),
+					" or ",
+					React.createElement(
+						Link,
+						{ className: "btn btn-primary", to: "register" },
+						"Register"
+					)
+				)
+			);
+		}
+	});
+	
+	module.exports = Home;
+
+/***/ },
+/* 264 */
+/*!***********************************!*\
+  !*** ./components/Login/Login.js ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1),
+	    ReactRouter = __webpack_require__(/*! react-router */ 159),
+	    History = ReactRouter.History,
+	    style = __webpack_require__(/*! ./Login.css */ 265),
+	    HOASearch = __webpack_require__(/*! ../HOASearch */ 267),
+	    Link = ReactRouter.Link,
+	    API = __webpack_require__(/*! ../../services/api */ 227);
+	
+	var logo = __webpack_require__(/*! ./Logo.png */ 271);
+	
+	var Login = React.createClass({
+		displayName: "Login",
+	
+		mixins: [History],
+		getInitialState: function () {
+			return {
+				error: false
+			};
+		},
+		login: function (event) {
+			var self = this;
+			event.preventDefault();
+	
+			var email = this.refs.email.value;
+			var password = this.refs.password.value;
+			if (!email || !password) {
+				self.setState({ error: true });
+				return;
+			}
+	
+			API.auth.login({
+				email: email,
+				password: password
+			}).then(function (data) {
+				if (data.token) {
+					window.location.href = '/#/files';
+					window.location.reload();
+				} else {
+					self.setState({ error: true });
+				}
+			});
+			return false;
+		},
+		render: function () {
+			var query = this.props.location;
+			var email = query && query.query ? query.query.email : '';
+			console.log('email', email);
+			return React.createElement(
+				"div",
+				{ className: "Login" },
+				React.createElement(
+					"div",
+					{ className: "outer login" },
+					React.createElement(
+						"div",
+						{ className: "middle" },
+						React.createElement(
+							"div",
+							{ className: "inner login-box" },
+							React.createElement("img", { src: logo, className: "logo" }),
+							React.createElement("br", null),
+							React.createElement("br", null),
+							React.createElement(
+								"form",
+								{ onSubmit: this.login },
+								React.createElement("input", { className: "form-control", type: "email", placeholder: "Email", ref: "email", defaultValue: email }),
+								React.createElement("br", null),
+								React.createElement("input", { className: "form-control", type: "password", placeholder: "Password", ref: "password" }),
+								React.createElement("br", null),
+								React.createElement("input", { type: "submit", className: "btn btn-primary form-control", onClick: this.login }),
+								React.createElement("br", null),
+								React.createElement("br", null)
+							),
+							this.state.error ? React.createElement(
+								"div",
+								{ className: "error" },
+								"Incorrect email or password"
+							) : '',
+							React.createElement(
+								"a",
+								{ href: "#/register" },
+								"Need an account? Click here."
+							)
+						)
+					)
+				)
+			);
+		}
+	});
+	
+	module.exports = Login;
+
+/***/ },
 /* 265 */
+/*!************************************!*\
+  !*** ./components/Login/Login.css ***!
+  \************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 266 */,
+/* 267 */
+/*!*******************************************!*\
+  !*** ./components/HOASearch/HOASearch.js ***!
+  \*******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./HOASearch.css */ 268);
+	var Link = ReactRouter.Link;
+	var API = __webpack_require__(/*! ../../services/api */ 227);
+	var _ = __webpack_require__(/*! underscore */ 270);
+	
+	var HOASearch = React.createClass({
+		displayName: "HOASearch",
+	
+		componentWillMount: function () {
+			var self = this;
+			this.setState({ hoas: null, visibleHoas: [] });
+			API.hoa.getAll().then(function (data) {
+				self.setState({ hoas: data.data, visibleHoas: [] });
+			});
+		},
+		onChange: function (t) {
+			var prefix = t.target.value;
+			var visible = _.filter(this.state.hoas, function (hoa) {
+				var item = hoa.name.toLowerCase();
+				prefix = prefix.toLowerCase();
+				return prefix.length >= 3 && item.slice(0, prefix.length) == prefix;
+			});
+			this.setState({ visibleHoas: visible.slice(0, 8) });
+		},
+		setSelectedHoa: function (hoa) {
+			this.setState({ selectedHoa: hoa });
+			this.props.onHoaSelect(hoa);
+		},
+		render: function () {
+			var self = this;
+			return React.createElement(
+				"div",
+				{ className: "HOASearch" },
+				React.createElement("input", { type: "text", placeholder: "HOA Name", className: "input", onChange: this.onChange }),
+				React.createElement(
+					"div",
+					{ className: "results" },
+					this.state.visibleHoas.map(function (item) {
+						return React.createElement(
+							"div",
+							{ className: "hoa-result", key: item.id, onClick: self.setSelectedHoa.bind(null, item) },
+							item.name
+						);
+					})
+				)
+			);
+		}
+	});
+	
+	module.exports = HOASearch;
+
+/***/ },
+/* 268 */
+/*!********************************************!*\
+  !*** ./components/HOASearch/HOASearch.css ***!
+  \********************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 269 */,
+/* 270 */
 /*!*************************************!*\
   !*** ../~/underscore/underscore.js ***!
   \*************************************/
@@ -8194,14 +8190,207 @@ webpackJsonp([1],[
 
 
 /***/ },
-/* 266 */
+/* 271 */
+/*!***********************************!*\
+  !*** ./components/Login/Logo.png ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "components/Login/Logo.png";
+
+/***/ },
+/* 272 */
+/*!*****************************************!*\
+  !*** ./components/Register/Register.js ***!
+  \*****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var History = ReactRouter.History;
+	var style = __webpack_require__(/*! ./Register.css */ 273);
+	var HOASearch = __webpack_require__(/*! ../HOASearch */ 267);
+	var Link = ReactRouter.Link;
+	var API = __webpack_require__(/*! ../../services/api */ 227);
+	
+	var Register = React.createClass({
+		displayName: "Register",
+	
+		mixins: [History],
+		getInitialState: function () {
+			return {
+				error: false
+			};
+		},
+		register: function (event) {
+			event.preventDefault();
+			var name = this.refs.firstname.value + ' ' + this.refs.lastname.value;
+			var firstname = this.refs.firstname.value;
+			var lastname = this.refs.lastname.value;
+			var email = this.refs.email.value;
+			var password = this.refs.password.value;
+			var hoa = this.state.selectedHoa;
+			if (!name || !email || !password || !hoa) {
+				return;
+			}
+			API.auth.register({
+				firstName: firstname,
+				lastName: lastname,
+				email: email,
+				password: password,
+				hoaId: hoa.id
+			}).then(function () {
+				this.history.pushState(null, '/files');
+				window.location.replace('/#/files');
+			});
+		},
+		onHoaSelect: function (hoa) {
+			this.setState({ selectedHoa: hoa });
+		},
+		changeSelectedHoa: function () {
+			this.setState({ selectedHoa: undefined });
+		},
+		render: function () {
+			return React.createElement(
+				"div",
+				{ className: "Register" },
+				React.createElement(
+					"div",
+					{ className: "outer login" },
+					React.createElement(
+						"div",
+						{ className: "middle" },
+						React.createElement(
+							"div",
+							{ className: "inner login-box" },
+							React.createElement(
+								"h2",
+								null,
+								"Register"
+							),
+							this.state.selectedHoa ? React.createElement(
+								"h3",
+								null,
+								React.createElement(
+									"small",
+									null,
+									"Registering as memeber of"
+								),
+								React.createElement("br", null),
+								this.state.selectedHoa.name,
+								React.createElement(
+									"small",
+									{ className: "change-button", onClick: this.changeSelectedHoa },
+									" change"
+								)
+							) : React.createElement(
+								"div",
+								null,
+								React.createElement(
+									"div",
+									{ className: "instructions" },
+									"Start by typing the name of your HOA"
+								),
+								React.createElement(HOASearch, { onHoaSelect: this.onHoaSelect })
+							),
+							this.state.selectedHoa ? React.createElement(
+								"form",
+								{ className: "form form-vertical", onSubmit: this.register },
+								React.createElement(
+									"div",
+									{ className: "form-group" },
+									React.createElement(
+										"label",
+										null,
+										"First Name"
+									),
+									React.createElement("input", { className: "form-control", type: "text", placeholder: "First Name", ref: "firstname", autoFocus: true })
+								),
+								React.createElement(
+									"div",
+									{ className: "form-group" },
+									React.createElement(
+										"label",
+										null,
+										"Last Name"
+									),
+									React.createElement("input", { className: "form-control", type: "text", placeholder: "Last Name", ref: "lastname", autoFocus: true })
+								),
+								React.createElement(
+									"div",
+									{ className: "form-group" },
+									React.createElement(
+										"label",
+										null,
+										"Email"
+									),
+									React.createElement("input", { className: "form-control", type: "text", placeholder: "Email", ref: "email" })
+								),
+								React.createElement(
+									"div",
+									{ className: "form-group" },
+									React.createElement(
+										"label",
+										null,
+										"Password"
+									),
+									React.createElement("input", { className: "form-control", type: "password", placeholder: "Password", ref: "password" })
+								),
+								React.createElement(
+									"div",
+									{ className: "form-group" },
+									React.createElement("input", { className: "btn btn-primary", type: "submit", value: "Register" })
+								),
+								this.state.error ? React.createElement(
+									"div",
+									{ className: "alert" },
+									"Invalid email or password."
+								) : null
+							) : '',
+							"Already have an account? ",
+							React.createElement(
+								Link,
+								{ to: "/login" },
+								"Login here"
+							)
+						)
+					)
+				)
+			);
+		}
+	});
+	module.exports = Register;
+
+/***/ },
+/* 273 */
+/*!******************************************!*\
+  !*** ./components/Register/Register.css ***!
+  \******************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 274 */,
+/* 275 */
 /*!*******************************************!*\
   !*** ./components/FilesPage/FilesPage.js ***!
   \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var React = __webpack_require__(/*! react */ 1);
-	ReactRouter = __webpack_require__(/*! react-router */ 159), classNames = __webpack_require__(/*! classnames */ 212), styles = __webpack_require__(/*! ./FilesPage.css */ 267), Link = ReactRouter.Link, Navigation = __webpack_require__(/*! ../Navigation */ 218), UserButton = __webpack_require__(/*! ../UserButton */ 221), File = __webpack_require__(/*! ../File */ 269), API = __webpack_require__(/*! ../../services/api */ 239);
+	var React = __webpack_require__(/*! react */ 1),
+	    ReactRouter = __webpack_require__(/*! react-router */ 159),
+	    styles = __webpack_require__(/*! ./FilesPage.css */ 276),
+	    Link = ReactRouter.Link,
+	    Navigation = __webpack_require__(/*! ../Navigation */ 217),
+	    UserButton = __webpack_require__(/*! ../UserButton */ 221),
+	    File = __webpack_require__(/*! ../File */ 278),
+	    Folder = __webpack_require__(/*! ../Folder */ 282),
+	    AddFileButton = __webpack_require__(/*! ../AddFileButton */ 293),
+	    AddFolderButton = __webpack_require__(/*! ../AddFolderButton */ 299),
+	    API = __webpack_require__(/*! ../../services/api */ 227),
+	    _ = __webpack_require__(/*! underscore */ 270),
+	    jwt = __webpack_require__(/*! ../../services/jwt */ 206);
 	History = ReactRouter.History;
 	
 	var FilesPage = React.createClass({
@@ -8209,17 +8398,43 @@ webpackJsonp([1],[
 	
 		mixins: [History],
 		getInitialState: function () {
+			var roles = jwt.get('roles');
+			var isHoaAdmin = _.contains(roles, 'HOAAdmin');
 			return {
-				path: ['Root']
+				path: ['All Files'],
+				pathHistory: [],
+				visibleFolders: [],
+				visibleFiles: [],
+				loading: false,
+				error: false,
+				isHoaAdmin: isHoaAdmin,
+				draggingFolder: null,
+				draggingFie: null
+				// Right now I am pushing to pathHistory in order to keep track of browser history.
+				// Should be able to update this to use the react-router history
 			};
 		},
 		componentWillMount: function () {
-			var self = this;
 			this.props.setNavigation(null, this.convertToNavPath(this.state.path));
+			this.loadFiles();
+			window.onpopstate = this.onBackButtonEvent;
+		},
+		onBackButtonEvent: function (e) {
+			e.preventDefault();
+			var last = this.state.pathHistory.pop();
+			if (!!last) {
+				this.setState({ path: last }, this.setVisibleFiles);
+				this.props.setNavigation(null, this.convertToNavPath(last));
+			}
+		},
+		loadFiles: function () {
+			this.setState({ loading: true });
+			var self = this;
 			API.file.get().then(function (data) {
-				self.setState({ files: data.data }, self.setVisibleFiles);
+				self.setState({ files: data.data, loading: false }, self.setVisibleFiles);
 			}).catch(function (err) {
 				console.log('err', err);
+				self.setState({ error: true, loading: false });
 			});
 		},
 		convertToNavPath: function (newPath) {
@@ -8232,16 +8447,6 @@ webpackJsonp([1],[
 					}
 				};
 			});
-		},
-		folderClicked: function (folder) {
-			var newPath = folder.name.split('/');
-			if (newPath[newPath.length - 1] === '') newPath.pop();
-	
-			this.setState({ path: newPath }, this.setVisibleFiles);
-			this.props.setNavigation(null, this.convertToNavPath(newPath));
-		},
-		fileClicked: function (file) {
-			API.file.download(file.name);
 		},
 		popPathUntil(filename) {
 			var path = this.state.path;
@@ -8281,28 +8486,98 @@ webpackJsonp([1],[
 			this.setState({ visibleFolders: visibleFolders });
 			this.setState({ visibleFiles: visibleFiles });
 		},
+		folderClicked: function (folder) {
+			this.state.pathHistory.push(this.state.path);
+			var newPath = folder.name.split('/');
+			if (newPath[newPath.length - 1] === '') newPath.pop();
+	
+			this.setState({ path: newPath }, this.setVisibleFiles);
+			this.props.setNavigation(null, this.convertToNavPath(newPath));
+			history.pushState(null, '');
+		},
+		folderDragStarted: function (folderName) {
+			this.setState({ draggingFolder: folderName });
+		},
+		folderDroppedOn: function (folderName) {
+			if (this.state.draggingFolder) {
+				this.state.draggingFolder.droppedOn(folderName);
+			}
+			if (this.state.draggingFile) {
+				this.state.draggingFile.droppedOn(folderName);
+			}
+		},
+		folderDragEnded: function () {
+			this.setState({ draggingFolder: null });
+		},
+		fileDragStarted: function (fileName) {
+			this.setState({ draggingFile: fileName });
+		},
+		fileDragEnded: function () {
+			this.setState({ draggingFile: null });
+		},
+		back: function () {
+			var self = this;
+			var path = this.state.path;
+			path.pop();
+			this.setState({ path: path }, function () {
+				self.setVisibleFiles();
+				self.props.setNavigation(null, this.convertToNavPath(path));
+			});
+		},
 		render: function () {
 			var self = this;
 			return React.createElement(
 				"div",
-				null,
+				{ className: "FilesPage" },
+				 // Add File Button
+				this.state.isHoaAdmin ? React.createElement(AddFileButton, { path: this.state.path, reloadFiles: this.loadFiles }) : '',
+				 // Add Folder Button
+				this.state.isHoaAdmin ? React.createElement(AddFolderButton, { path: this.state.path, reloadFiles: this.loadFiles }) : '',
 				React.createElement(
 					"h1",
 					null,
-					"Files"
+					 // Back Button
+					this.state.path.length > 1 ? React.createElement("i", { className: "fa fa-arrow-circle-o-left back-button", onClick: this.back }) : '',
+					this.state.path[this.state.path.length - 1],
+					 // Loading spinner
+					this.state.loading ? React.createElement("i", { className: "fa fa-circle-o-notch fa-spin" }) : ''
 				),
-				this.state.visibleFolders ? this.state.visibleFolders.map(function (folder) {
+				 // Error message
+				this.state.error ? React.createElement(
+					"div",
+					{ className: "message" },
+					"Uh oh, something went wrong.  Please try again later."
+				) : '',
+				 // Empty Folder Message
+				this.state.visibleFiles.length + this.state.visibleFolders.length === 0 && !this.state.loading && !this.state.error ? React.createElement(
+					"div",
+					{ className: "message" },
+					"Nothing to see here.  This folder is empty."
+				) : '',
+				 // Folders
+				this.state.visibleFolders.map(function (folder) {
 					return React.createElement(
 						"div",
-						{ key: folder.name, className: "col-md-3 col-sm-4 col-xs-12", onClick: self.folderClicked.bind(self, folder) },
-						React.createElement(File, { file: folder, type: "folder" })
+						{ key: folder.name, className: "row-element col-md-3 col-sm-4 col-xs-12" },
+						React.createElement(Folder, { folder: folder,
+							folderClicked: self.folderClicked,
+							reloadFiles: self.loadFiles,
+							dragStarted: self.folderDragStarted,
+							droppedOn: self.folderDroppedOn,
+							dragEnded: self.folderDragEnded
+						})
 					);
-				}) : React.createElement("i", { className: "fa fa-5x fa-circle-o-notch fa-spin" }),
+				}),
+				 // Files
 				this.state.visibleFiles ? this.state.visibleFiles.map(function (file) {
 					return React.createElement(
 						"div",
-						{ key: file.name, className: "col-md-3 col-sm-4 col-xs-12", onClick: self.fileClicked.bind(self, file) },
-						React.createElement(File, { file: file, type: "file" })
+						{ key: file.name, className: "row-element col-md-3 col-sm-4 col-xs-12" },
+						React.createElement(File, { file: file,
+							reloadFiles: self.loadFiles,
+							dragStarted: self.fileDragStarted,
+							dragEnded: self.fileDragEnded
+						})
 					);
 				}) : ''
 			);
@@ -8312,7 +8587,7 @@ webpackJsonp([1],[
 	module.exports = FilesPage;
 
 /***/ },
-/* 267 */
+/* 276 */
 /*!********************************************!*\
   !*** ./components/FilesPage/FilesPage.css ***!
   \********************************************/
@@ -8321,8 +8596,8 @@ webpackJsonp([1],[
 	// removed by extract-text-webpack-plugin
 
 /***/ },
-/* 268 */,
-/* 269 */
+/* 277 */,
+/* 278 */
 /*!*********************************!*\
   !*** ./components/File/File.js ***!
   \*********************************/
@@ -8330,16 +8605,16 @@ webpackJsonp([1],[
 
 	var React = __webpack_require__(/*! react */ 1);
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var classNames = __webpack_require__(/*! classnames */ 212);
-	var styles = __webpack_require__(/*! ./File.css */ 270);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./File.css */ 279);
 	var Link = ReactRouter.Link;
-	var Navigation = __webpack_require__(/*! ../Navigation */ 218);
+	var Navigation = __webpack_require__(/*! ../Navigation */ 217);
 	var UserButton = __webpack_require__(/*! ../UserButton */ 221);
-	var File = __webpack_require__(/*! ../File */ 269);
-	var API = __webpack_require__(/*! ../../services/api */ 239);
-	
-	var FolderImage = __webpack_require__(/*! ./folder.png */ 272);
-	var FileImage = __webpack_require__(/*! ./file.png */ 273);
+	var File = __webpack_require__(/*! ../File */ 278);
+	var API = __webpack_require__(/*! ../../services/api */ 227);
+	var jwt = __webpack_require__(/*! ../../services/jwt */ 206);
+	var _ = __webpack_require__(/*! underscore */ 270);
+	var FileImage = __webpack_require__(/*! ./file.png */ 281);
 	
 	var File = React.createClass({
 		displayName: "File",
@@ -8347,15 +8622,97 @@ webpackJsonp([1],[
 		getInitialState: function () {
 			var parts = this.props.file.name.split('/');
 			if (parts[parts.length - 1] === '') parts.pop();
+	
+			var roles = jwt.get('roles');
+			var isHoaAdmin = _.contains(roles, 'HOAAdmin');
+	
 			return {
-				displayName: parts[parts.length - 1]
+				displayName: parts[parts.length - 1],
+				isHoaAdmin: isHoaAdmin
 			};
+		},
+		handleClick: function () {
+			this.fileClicked(this.props.file);
+		},
+		fileClicked: function (file) {
+			var self = this;
+			this.setState({ downloading: true });
+			API.file.download(file.name).then(function (data) {
+				console.log('returned');
+				self.setState({ downloading: false });
+			});
+		},
+		deleteFile: function () {
+			var self = this;
+			this.setState({ deleting: true });
+			API.file.deleteFile(this.props.file.name).then(function (data) {
+				self.props.reloadFiles();
+			});
+		},
+		move: function (destinationPath) {
+			var self = this;
+			this.setState({ moving: true });
+			API.file.moveFile(this.props.file.name, destinationPath).then(function (data) {
+				self.props.reloadFiles();
+			});
+		},
+		dragStart: function (event) {
+			event.dataTransfer.setData("text", event.target.name);
+			this.setState({ dragging: true });
+			var draggingFile = this;
+			this.props.dragStarted(draggingFile);
+		},
+		dragEnd: function (event) {
+			this.setState({ dragging: false });
+			this.props.dragEnded();
+		},
+		drop: function (event) {
+			event.preventDefault();
+		},
+		droppedOn: function (path) {
+			var pieces = this.props.file.name.split('/');
+			var destinationPath = path + pieces[pieces.length - 1];
+			this.move(destinationPath);
+		},
+		dragOver: function (event) {
+			event.preventDefault();
 		},
 		render: function () {
 			return React.createElement(
 				"div",
 				{ className: "File" },
-				React.createElement("img", { src: this.props.type === 'file' ? FileImage : FolderImage }),
+				this.state.isHoaAdmin ? React.createElement("i", { className: "fa fa-2x fa-times-circle close-button", onClick: this.deleteFile }) : '',
+				React.createElement("img", { src: FileImage,
+					name: this.props.file.name,
+					onClick: this.handleClick,
+					className: this.state.dragging ? 'file-image hidden-icon' : 'file-image',
+					draggable: "true",
+					onDragStart: this.dragStart,
+					onDragEnd: this.dragEnd,
+					onDrop: this.drop,
+					onDragOver: this.dragOver
+				}),
+				this.state.downloading ? React.createElement(
+					"div",
+					{ className: "action-wrapper" },
+					React.createElement("i", { className: "fa fa-2x fa-circle-o-notch fa-spin" }),
+					React.createElement("br", null),
+					"Downloading..."
+				) : '',
+				this.state.deleting ? React.createElement(
+					"div",
+					{ className: "action-wrapper" },
+					React.createElement("i", { className: "fa fa-2x fa-circle-o-notch fa-spin" }),
+					React.createElement("br", null),
+					"Deleting..."
+				) : '',
+				this.state.moving ? React.createElement(
+					"div",
+					{ className: "action-wrapper" },
+					React.createElement("i", { className: "fa fa-2x fa-circle-o-notch fa-spin" }),
+					React.createElement("br", null),
+					"Moving..."
+				) : '',
 				React.createElement("br", null),
 				React.createElement(
 					"div",
@@ -8369,7 +8726,7 @@ webpackJsonp([1],[
 	module.exports = File;
 
 /***/ },
-/* 270 */
+/* 279 */
 /*!**********************************!*\
   !*** ./components/File/File.css ***!
   \**********************************/
@@ -8378,17 +8735,8 @@ webpackJsonp([1],[
 	// removed by extract-text-webpack-plugin
 
 /***/ },
-/* 271 */,
-/* 272 */
-/*!************************************!*\
-  !*** ./components/File/folder.png ***!
-  \************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__.p + "components/File/folder.png";
-
-/***/ },
-/* 273 */
+/* 280 */,
+/* 281 */
 /*!**********************************!*\
   !*** ./components/File/file.png ***!
   \**********************************/
@@ -8397,7 +8745,928 @@ webpackJsonp([1],[
 	module.exports = __webpack_require__.p + "components/File/file.png";
 
 /***/ },
-/* 274 */
+/* 282 */
+/*!*************************************!*\
+  !*** ./components/Folder/Folder.js ***!
+  \*************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1),
+	    ReactRouter = __webpack_require__(/*! react-router */ 159),
+	    classNames = __webpack_require__(/*! classnames */ 218),
+	    styles = __webpack_require__(/*! ./Folder.css */ 283),
+	    Link = ReactRouter.Link,
+	    Navigation = __webpack_require__(/*! ../Navigation */ 217),
+	    UserButton = __webpack_require__(/*! ../UserButton */ 221),
+	    Modal = __webpack_require__(/*! ../Modal */ 285),
+	    ContextMenu = __webpack_require__(/*! ../ContextMenu */ 288),
+	    Folder = __webpack_require__(/*! ../Folder */ 282),
+	    jwt = __webpack_require__(/*! ../../services/jwt */ 206),
+	    _ = __webpack_require__(/*! underscore */ 270),
+	    API = __webpack_require__(/*! ../../services/api */ 227);
+	
+	var FolderImage = __webpack_require__(/*! ./folder.png */ 291);
+	var FolderOpenImage = __webpack_require__(/*! ./folder-open.png */ 292);
+	
+	var Folder = React.createClass({
+		displayName: "Folder",
+	
+		getInitialState: function () {
+			var self = this;
+			var parts = this.props.folder.name.split('/');
+			if (parts[parts.length - 1] === '') parts.pop();
+	
+			var roles = jwt.get('roles');
+			var isHoaAdmin = _.contains(roles, 'HOAAdmin');
+	
+			var contextMenuItems = [{
+				text: 'Rename',
+				callback: function () {
+					self.toggleRenameModal();
+				}
+	
+			}, {
+				text: 'Delete',
+				callback: function () {
+					self.deleteFolder();
+				}
+	
+			}];
+			return {
+				displayName: parts[parts.length - 1],
+				isHoaAdmin: isHoaAdmin,
+				contextMenuItems: contextMenuItems
+			};
+		},
+		handleClick: function () {
+			this.folderClicked(this.props.folder);
+		},
+		folderClicked: function (folder) {
+			this.props.folderClicked(folder);
+		},
+		renameFolder: function () {
+			var self = this;
+			this.setState({ renaming: true });
+			/*
+	  		API.file.renameFile(this.props.folder.name).then(function(data) {
+	  			self.setState({renaming; false});
+	  			self.props.reloadFiles();
+	  		});
+	  		*/
+		},
+		deleteFolder: function () {
+			var self = this;
+			this.setState({ deleting: true });
+			API.file.deleteFile(this.props.folder.name).then(function (data) {
+				self.props.reloadFiles();
+			});
+		},
+		move: function (destinationPath) {
+			var self = this;
+			this.setState({ moving: true });
+			API.file.moveFile(this.props.folder.name, destinationPath).then(function (data) {
+				self.props.reloadFiles();
+			});
+		},
+		toggleRenameModal: function () {
+			this.setState({ displayRenameModal: !this.state.displayRenameModal });
+		},
+		dragStart: function (event) {
+			event.dataTransfer.setData("text", event.target.name);
+			this.setState({ dragging: true });
+			var draggingFolder = this;
+			this.props.dragStarted(draggingFolder);
+		},
+		dragEnd: function (event) {
+			this.setState({ dragging: false });
+			this.props.dragEnded();
+		},
+		dragEnter: function (event) {
+			this.setState({ useOpenImage: true });
+		},
+		dragExit: function (event) {
+			this.setState({ useOpenImage: false });
+		},
+		drop: function (event) {
+			event.preventDefault();
+			this.setState({ useOpenImage: false });
+			var droppedOnFolder = event.target.name;
+			this.props.droppedOn(droppedOnFolder);
+		},
+		droppedOn: function (path) {
+			if (this.props.folder.name !== path) {
+				var pieces = this.props.folder.name.split('/');
+				if (pieces[pieces.length - 1] === '') {
+					pieces.pop();
+				}
+				var destinationPath = path + pieces[pieces.length - 1] + '/';
+	
+				this.move(destinationPath);
+			}
+		},
+		dragOver: function (event) {
+			event.preventDefault();
+		},
+		render: function () {
+			return React.createElement(
+				"div",
+				{ className: "Folder" },
+				this.state.isHoaAdmin && !this.state.dragging ? React.createElement("i", { className: "fa fa-2x fa-times-circle close-button", onClick: this.deleteFolder }) : '',
+				React.createElement(
+					ContextMenu,
+					{ items: this.state.contextMenuItems },
+					React.createElement("img", { src: this.state.useOpenImage ? FolderOpenImage : FolderImage,
+						name: this.props.folder.name,
+						onClick: this.handleClick,
+						className: this.state.dragging ? 'folder-image hidden-icon' : 'folder-image',
+						draggable: "true",
+						onDragStart: this.dragStart,
+						onDragEnd: this.dragEnd,
+						onDragEnter: this.dragEnter,
+						onDragExit: this.dragExit,
+						onDragLeave: this.dragExit,
+						onDrop: this.drop,
+						onDragOver: this.dragOver
+					})
+				),
+				this.state.renaming ? React.createElement(
+					"div",
+					{ className: "action-wrapper" },
+					React.createElement("i", { className: "fa fa-2x fa-circle-o-notch fa-spin" }),
+					React.createElement("br", null),
+					"Renaming..."
+				) : '',
+				this.state.deleting ? React.createElement(
+					"div",
+					{ className: "action-wrapper" },
+					React.createElement("i", { className: "fa fa-2x fa-circle-o-notch fa-spin" }),
+					React.createElement("br", null),
+					"Deleting..."
+				) : '',
+				this.state.moving ? React.createElement(
+					"div",
+					{ className: "action-wrapper" },
+					React.createElement("i", { className: "fa fa-2x fa-circle-o-notch fa-spin" }),
+					React.createElement("br", null),
+					"Moving..."
+				) : '',
+				React.createElement("br", null),
+				React.createElement(
+					"div",
+					{ className: "folder-label" },
+					this.state.displayName
+				),
+				React.createElement(
+					Modal,
+					{ toggle: this.toggleRenameModal, display: this.state.displayRenameModal },
+					React.createElement(
+						"h1",
+						null,
+						"Rename Folder"
+					),
+					React.createElement(
+						"p",
+						null,
+						"Type the new name of the folder."
+					),
+					React.createElement(
+						"form",
+						{ className: "form-inline", onSubmit: this.createFolder },
+						React.createElement(
+							"div",
+							{ className: "input-group" },
+							React.createElement("input", { type: "text", placeholder: "Folder Name", ref: "folderName", className: "form-control" }),
+							React.createElement(
+								"span",
+								{ className: "input-group-btn" },
+								React.createElement(
+									"button",
+									{ className: "btn btn-default", type: "button", onClick: this.renameFolder },
+									"Rename"
+								)
+							)
+						)
+					)
+				)
+			);
+		}
+	});
+	
+	module.exports = Folder;
+
+/***/ },
+/* 283 */
+/*!**************************************!*\
+  !*** ./components/Folder/Folder.css ***!
+  \**************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 284 */,
+/* 285 */
+/*!***********************************!*\
+  !*** ./components/Modal/Modal.js ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./Modal.css */ 286);
+	
+	var Modal = React.createClass({
+		displayName: "Modal",
+	
+		getInitialState: function () {
+			return {};
+		},
+		render: function () {
+			return React.createElement(
+				"div",
+				{ className: "Modal", onContextMenu: this.onContextMenu },
+				this.props.display ? React.createElement(
+					"div",
+					null,
+					React.createElement("div", { className: "screen", onClick: this.props.toggle }),
+					React.createElement(
+						"div",
+						{ className: "inner-modal" },
+						this.props.children
+					)
+				) : ''
+			);
+		}
+	});
+	
+	module.exports = Modal;
+
+/***/ },
+/* 286 */
+/*!************************************!*\
+  !*** ./components/Modal/Modal.css ***!
+  \************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 287 */,
+/* 288 */
+/*!***********************************************!*\
+  !*** ./components/ContextMenu/ContextMenu.js ***!
+  \***********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./ContextMenu.css */ 289);
+	
+	var ContextMenu = React.createClass({
+		displayName: "ContextMenu",
+	
+		getInitialState: function () {
+			return { display: false };
+		},
+		onContextMenu: function (e) {
+			e.preventDefault();
+			this.setState({ x: e.clientX, y: e.clientY }, this.showMenu);
+		},
+		showMenu: function () {
+			this.setState({ display: true });
+		},
+		hideMenu: function () {
+			this.setState({ display: false });
+		},
+		itemClick: function (cb) {
+			this.setState({ display: false });
+			if (cb) cb();
+		},
+		render: function () {
+			var self = this;
+			return React.createElement(
+				"div",
+				{ className: "ContextMenu", onContextMenu: this.onContextMenu },
+				this.props.children,
+				this.state.display ? React.createElement(
+					"div",
+					null,
+					React.createElement("div", { className: "screen", onClick: this.hideMenu }),
+					React.createElement(
+						"div",
+						{ className: "menu", style: { left: this.state.x + 1, top: this.state.y + 1 } },
+						this.props.title ? React.createElement(
+							"div",
+							{ className: "title" },
+							this.props.title
+						) : '',
+						this.props.items.map(function (item) {
+							return React.createElement(
+								"div",
+								{ key: item.text, className: "item", onClick: self.itemClick.bind(self, item.callback) },
+								item.text
+							);
+						})
+					)
+				) : ''
+			);
+		}
+	});
+	
+	module.exports = ContextMenu;
+
+/***/ },
+/* 289 */
+/*!************************************************!*\
+  !*** ./components/ContextMenu/ContextMenu.css ***!
+  \************************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 290 */,
+/* 291 */
+/*!**************************************!*\
+  !*** ./components/Folder/folder.png ***!
+  \**************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "components/Folder/folder.png";
+
+/***/ },
+/* 292 */
+/*!*******************************************!*\
+  !*** ./components/Folder/folder-open.png ***!
+  \*******************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "components/Folder/folder-open.png";
+
+/***/ },
+/* 293 */
+/*!***************************************************!*\
+  !*** ./components/AddFileButton/AddFileButton.js ***!
+  \***************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./AddFileButton.css */ 294);
+	var Link = ReactRouter.Link;
+	var Navigation = __webpack_require__(/*! ../Navigation */ 217);
+	var UserButton = __webpack_require__(/*! ../UserButton */ 221);
+	var File = __webpack_require__(/*! ../File */ 278);
+	var API = __webpack_require__(/*! ../../services/api */ 227);
+	var Dropzone = __webpack_require__(/*! react-dropzone */ 296);
+	
+	var filePreview = __webpack_require__(/*! ./file-preview.png */ 298);
+	
+	var AddFileButton = React.createClass({
+		displayName: "AddFileButton",
+	
+		getInitialState: function () {
+			return { showPopover: false, files: [] };
+		},
+		onDrop: function (files) {
+			this.setState({ showPopover: false });
+			var self = this;
+			this.setState({ files: files, completed: 0 });
+			var pathString = '';
+			for (var i in this.props.path) {
+				pathString += this.props.path[i] + '/';
+			}
+			for (var j in files) {
+				API.file.upload(files[j], pathString).then(function () {
+					self.setState({ completed: self.state.completed + 1 });
+					if (self.state.completed === self.state.files.length) {
+						self.setState({ files: [] });
+					}
+					self.props.reloadFiles();
+				});
+			}
+		},
+		hidePopover: function () {
+			this.setState({ showPopover: false });
+		},
+		showPopover: function () {
+			this.setState({ showPopover: true });
+		},
+		render: function () {
+			return React.createElement(
+				"div",
+				{ className: "AddFileButton " },
+				React.createElement(
+					"button",
+					{ className: "btn btn-hover upload-btn", onClick: this.showPopover },
+					React.createElement("i", { className: "fa fa-file" }),
+					" Upload Files"
+				),
+				React.createElement("br", null),
+				this.state.files.length > 0 ? React.createElement(
+					"span",
+					null,
+					React.createElement("i", { className: "fa fa-circle-o-notch fa-spin" }),
+					" uploading: ",
+					this.state.completed + 1,
+					" of ",
+					this.state.files.length
+				) : '',
+				this.state.showPopover ? React.createElement(
+					"div",
+					null,
+					React.createElement("div", { className: "screen", onClick: this.hidePopover }),
+					React.createElement(
+						"div",
+						{ className: "folder-popover" },
+						React.createElement(
+							"h1",
+							null,
+							"File Upload"
+						),
+						React.createElement(
+							Dropzone,
+							{ onDrop: this.onDrop, className: "dropzone", activeClassName: "dropzone-active" },
+							React.createElement(
+								"div",
+								null,
+								React.createElement(
+									"b",
+									null,
+									"Drag & Drop"
+								),
+								" some files here, or ",
+								React.createElement(
+									"b",
+									null,
+									"click"
+								),
+								" to select files to upload.",
+								React.createElement("br", null),
+								React.createElement("br", null),
+								React.createElement("i", { className: "fa fa-5x fa-cloud-upload" })
+							)
+						)
+					)
+				) : ''
+			);
+		}
+	});
+	
+	module.exports = AddFileButton;
+
+/***/ },
+/* 294 */
+/*!****************************************************!*\
+  !*** ./components/AddFileButton/AddFileButton.css ***!
+  \****************************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 295 */,
+/* 296 */
+/*!****************************************!*\
+  !*** ../~/react-dropzone/lib/index.js ***!
+  \****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	exports.__esModule = true;
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+	
+	function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var _attrAccept = __webpack_require__(/*! attr-accept */ 297);
+	
+	var _attrAccept2 = _interopRequireDefault(_attrAccept);
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var supportMultiple = typeof document !== 'undefined' && document && document.createElement ? 'multiple' in document.createElement('input') : true;
+	
+	var Dropzone = (function (_React$Component) {
+	  _inherits(Dropzone, _React$Component);
+	
+	  function Dropzone(props, context) {
+	    _classCallCheck(this, Dropzone);
+	
+	    _React$Component.call(this, props, context);
+	    this.onClick = this.onClick.bind(this);
+	    this.onDragEnter = this.onDragEnter.bind(this);
+	    this.onDragLeave = this.onDragLeave.bind(this);
+	    this.onDragOver = this.onDragOver.bind(this);
+	    this.onDrop = this.onDrop.bind(this);
+	
+	    this.state = {
+	      isDragActive: false
+	    };
+	  }
+	
+	  Dropzone.prototype.componentDidMount = function componentDidMount() {
+	    this.enterCounter = 0;
+	  };
+	
+	  Dropzone.prototype.onDragEnter = function onDragEnter(e) {
+	    e.preventDefault();
+	
+	    // Count the dropzone and any children that are entered.
+	    ++this.enterCounter;
+	
+	    // This is tricky. During the drag even the dataTransfer.files is null
+	    // But Chrome implements some drag store, which is accesible via dataTransfer.items
+	    var dataTransferItems = e.dataTransfer && e.dataTransfer.items ? e.dataTransfer.items : [];
+	
+	    // Now we need to convert the DataTransferList to Array
+	    var allFilesAccepted = this.allFilesAccepted(Array.prototype.slice.call(dataTransferItems));
+	
+	    this.setState({
+	      isDragActive: allFilesAccepted,
+	      isDragReject: !allFilesAccepted
+	    });
+	
+	    if (this.props.onDragEnter) {
+	      this.props.onDragEnter.call(this, e);
+	    }
+	  };
+	
+	  Dropzone.prototype.onDragOver = function onDragOver(e) {
+	    e.preventDefault();
+	    e.stopPropagation();
+	    return false;
+	  };
+	
+	  Dropzone.prototype.onDragLeave = function onDragLeave(e) {
+	    e.preventDefault();
+	
+	    // Only deactivate once the dropzone and all children was left.
+	    if (--this.enterCounter > 0) {
+	      return;
+	    }
+	
+	    this.setState({
+	      isDragActive: false,
+	      isDragReject: false
+	    });
+	
+	    if (this.props.onDragLeave) {
+	      this.props.onDragLeave.call(this, e);
+	    }
+	  };
+	
+	  Dropzone.prototype.onDrop = function onDrop(e) {
+	    e.preventDefault();
+	
+	    // Reset the counter along with the drag on a drop.
+	    this.enterCounter = 0;
+	
+	    this.setState({
+	      isDragActive: false,
+	      isDragReject: false
+	    });
+	
+	    var droppedFiles = e.dataTransfer ? e.dataTransfer.files : e.target.files;
+	    var max = this.props.multiple ? droppedFiles.length : 1;
+	    var files = [];
+	
+	    for (var i = 0; i < max; i++) {
+	      var file = droppedFiles[i];
+	      // We might want to disable the preview creation to support big files
+	      if (!this.props.disablePreview) {
+	        file.preview = window.URL.createObjectURL(file);
+	      }
+	      files.push(file);
+	    }
+	
+	    if (this.props.onDrop) {
+	      this.props.onDrop.call(this, files, e);
+	    }
+	
+	    if (this.allFilesAccepted(files)) {
+	      if (this.props.onDropAccepted) {
+	        this.props.onDropAccepted.call(this, files, e);
+	      }
+	    } else {
+	      if (this.props.onDropRejected) {
+	        this.props.onDropRejected.call(this, files, e);
+	      }
+	    }
+	  };
+	
+	  Dropzone.prototype.onClick = function onClick() {
+	    if (!this.props.disableClick) {
+	      this.open();
+	    }
+	  };
+	
+	  Dropzone.prototype.allFilesAccepted = function allFilesAccepted(files) {
+	    var _this = this;
+	
+	    return files.every(function (file) {
+	      return _attrAccept2['default'](file, _this.props.accept);
+	    });
+	  };
+	
+	  Dropzone.prototype.open = function open() {
+	    this.fileInputEl.value = null;
+	    this.fileInputEl.click();
+	  };
+	
+	  Dropzone.prototype.render = function render() {
+	    var _this2 = this;
+	
+	    var _props = this.props;
+	    var accept = _props.accept;
+	    var activeClassName = _props.activeClassName;
+	    var inputProps = _props.inputProps;
+	    var multiple = _props.multiple;
+	    var name = _props.name;
+	    var rejectClassName = _props.rejectClassName;
+	
+	    var rest = _objectWithoutProperties(_props, ['accept', 'activeClassName', 'inputProps', 'multiple', 'name', 'rejectClassName']);
+	
+	    var activeStyle = // eslint-disable-line prefer-const
+	    rest.activeStyle;
+	    var className = rest.className;
+	    var rejectStyle = rest.rejectStyle;
+	    var style = rest.style;
+	
+	    var props = _objectWithoutProperties(rest, ['activeStyle', 'className', 'rejectStyle', 'style']);
+	
+	    var _state = this.state;
+	    var isDragActive = _state.isDragActive;
+	    var isDragReject = _state.isDragReject;
+	
+	    className = className || '';
+	
+	    if (isDragActive && activeClassName) {
+	      className += ' ' + activeClassName;
+	    }
+	    if (isDragReject && rejectClassName) {
+	      className += ' ' + rejectClassName;
+	    }
+	
+	    if (!className && !style && !activeStyle && !rejectStyle) {
+	      style = {
+	        width: 200,
+	        height: 200,
+	        borderWidth: 2,
+	        borderColor: '#666',
+	        borderStyle: 'dashed',
+	        borderRadius: 5
+	      };
+	      activeStyle = {
+	        borderStyle: 'solid',
+	        backgroundColor: '#eee'
+	      };
+	      rejectStyle = {
+	        borderStyle: 'solid',
+	        backgroundColor: '#ffdddd'
+	      };
+	    }
+	
+	    var appliedStyle = undefined;
+	    if (activeStyle && isDragActive) {
+	      appliedStyle = _extends({}, style, activeStyle);
+	    } else if (rejectStyle && isDragReject) {
+	      appliedStyle = _extends({}, style, rejectStyle);
+	    } else {
+	      appliedStyle = _extends({}, style);
+	    }
+	
+	    var inputAttributes = {
+	      accept: accept,
+	      type: 'file',
+	      style: { display: 'none' },
+	      multiple: supportMultiple && multiple,
+	      ref: function ref(el) {
+	        return _this2.fileInputEl = el;
+	      },
+	      onChange: this.onDrop
+	    };
+	
+	    if (name && name.length) {
+	      inputAttributes.name = name;
+	    }
+	
+	    return _react2['default'].createElement(
+	      'div',
+	      _extends({
+	        className: className,
+	        style: appliedStyle
+	      }, props, /* expand user provided props first so event handlers are never overridden */{
+	        onClick: this.onClick,
+	        onDragEnter: this.onDragEnter,
+	        onDragOver: this.onDragOver,
+	        onDragLeave: this.onDragLeave,
+	        onDrop: this.onDrop
+	      }),
+	      this.props.children,
+	      _react2['default'].createElement('input', _extends({}, inputProps, /* expand user provided inputProps first so inputAttributes override them */inputAttributes))
+	    );
+	  };
+	
+	  return Dropzone;
+	})(_react2['default'].Component);
+	
+	Dropzone.defaultProps = {
+	  disablePreview: false,
+	  disableClick: false,
+	  multiple: true
+	};
+	
+	Dropzone.propTypes = {
+	  onDrop: _react2['default'].PropTypes.func,
+	  onDropAccepted: _react2['default'].PropTypes.func,
+	  onDropRejected: _react2['default'].PropTypes.func,
+	  onDragEnter: _react2['default'].PropTypes.func,
+	  onDragLeave: _react2['default'].PropTypes.func,
+	
+	  children: _react2['default'].PropTypes.element,
+	  style: _react2['default'].PropTypes.object,
+	  activeStyle: _react2['default'].PropTypes.object,
+	  rejectStyle: _react2['default'].PropTypes.object,
+	  className: _react2['default'].PropTypes.string,
+	  activeClassName: _react2['default'].PropTypes.string,
+	  rejectClassName: _react2['default'].PropTypes.string,
+	
+	  disablePreview: _react2['default'].PropTypes.bool,
+	  disableClick: _react2['default'].PropTypes.bool,
+	
+	  inputProps: _react2['default'].PropTypes.object,
+	  multiple: _react2['default'].PropTypes.bool,
+	  accept: _react2['default'].PropTypes.string,
+	  name: _react2['default'].PropTypes.string
+	};
+	
+	exports['default'] = Dropzone;
+	module.exports = exports['default'];
+
+
+/***/ },
+/* 297 */
+/*!**************************************!*\
+  !*** ../~/attr-accept/dist/index.js ***!
+  \**************************************/
+/***/ function(module, exports) {
+
+	module.exports=function(t){function n(e){if(r[e])return r[e].exports;var o=r[e]={exports:{},id:e,loaded:!1};return t[e].call(o.exports,o,o.exports,n),o.loaded=!0,o.exports}var r={};return n.m=t,n.c=r,n.p="",n(0)}([function(t,n,r){"use strict";n.__esModule=!0,r(8),r(9),n["default"]=function(t,n){if(t&&n){var r=function(){var r=n.split(","),e=t.name||"",o=t.type||"",i=o.replace(/\/.*$/,"");return{v:r.some(function(t){var n=t.trim();return"."===n.charAt(0)?e.toLowerCase().endsWith(n.toLowerCase()):/\/\*$/.test(n)?i===n.replace(/\/.*$/,""):o===n})}}();if("object"==typeof r)return r.v}return!0},t.exports=n["default"]},function(t,n){var r=t.exports={version:"1.2.2"};"number"==typeof __e&&(__e=r)},function(t,n){var r=t.exports="undefined"!=typeof window&&window.Math==Math?window:"undefined"!=typeof self&&self.Math==Math?self:Function("return this")();"number"==typeof __g&&(__g=r)},function(t,n,r){var e=r(2),o=r(1),i=r(4),u=r(19),c="prototype",f=function(t,n){return function(){return t.apply(n,arguments)}},s=function(t,n,r){var a,p,l,d,y=t&s.G,h=t&s.P,v=y?e:t&s.S?e[n]||(e[n]={}):(e[n]||{})[c],x=y?o:o[n]||(o[n]={});y&&(r=n);for(a in r)p=!(t&s.F)&&v&&a in v,l=(p?v:r)[a],d=t&s.B&&p?f(l,e):h&&"function"==typeof l?f(Function.call,l):l,v&&!p&&u(v,a,l),x[a]!=l&&i(x,a,d),h&&((x[c]||(x[c]={}))[a]=l)};e.core=o,s.F=1,s.G=2,s.S=4,s.P=8,s.B=16,s.W=32,t.exports=s},function(t,n,r){var e=r(5),o=r(18);t.exports=r(22)?function(t,n,r){return e.setDesc(t,n,o(1,r))}:function(t,n,r){return t[n]=r,t}},function(t,n){var r=Object;t.exports={create:r.create,getProto:r.getPrototypeOf,isEnum:{}.propertyIsEnumerable,getDesc:r.getOwnPropertyDescriptor,setDesc:r.defineProperty,setDescs:r.defineProperties,getKeys:r.keys,getNames:r.getOwnPropertyNames,getSymbols:r.getOwnPropertySymbols,each:[].forEach}},function(t,n){var r=0,e=Math.random();t.exports=function(t){return"Symbol(".concat(void 0===t?"":t,")_",(++r+e).toString(36))}},function(t,n,r){var e=r(20)("wks"),o=r(2).Symbol;t.exports=function(t){return e[t]||(e[t]=o&&o[t]||(o||r(6))("Symbol."+t))}},function(t,n,r){r(26),t.exports=r(1).Array.some},function(t,n,r){r(25),t.exports=r(1).String.endsWith},function(t,n){t.exports=function(t){if("function"!=typeof t)throw TypeError(t+" is not a function!");return t}},function(t,n){var r={}.toString;t.exports=function(t){return r.call(t).slice(8,-1)}},function(t,n,r){var e=r(10);t.exports=function(t,n,r){if(e(t),void 0===n)return t;switch(r){case 1:return function(r){return t.call(n,r)};case 2:return function(r,e){return t.call(n,r,e)};case 3:return function(r,e,o){return t.call(n,r,e,o)}}return function(){return t.apply(n,arguments)}}},function(t,n){t.exports=function(t){if(void 0==t)throw TypeError("Can't call method on  "+t);return t}},function(t,n,r){t.exports=function(t){var n=/./;try{"/./"[t](n)}catch(e){try{return n[r(7)("match")]=!1,!"/./"[t](n)}catch(o){}}return!0}},function(t,n){t.exports=function(t){try{return!!t()}catch(n){return!0}}},function(t,n){t.exports=function(t){return"object"==typeof t?null!==t:"function"==typeof t}},function(t,n,r){var e=r(16),o=r(11),i=r(7)("match");t.exports=function(t){var n;return e(t)&&(void 0!==(n=t[i])?!!n:"RegExp"==o(t))}},function(t,n){t.exports=function(t,n){return{enumerable:!(1&t),configurable:!(2&t),writable:!(4&t),value:n}}},function(t,n,r){var e=r(2),o=r(4),i=r(6)("src"),u="toString",c=Function[u],f=(""+c).split(u);r(1).inspectSource=function(t){return c.call(t)},(t.exports=function(t,n,r,u){"function"==typeof r&&(o(r,i,t[n]?""+t[n]:f.join(String(n))),"name"in r||(r.name=n)),t===e?t[n]=r:(u||delete t[n],o(t,n,r))})(Function.prototype,u,function(){return"function"==typeof this&&this[i]||c.call(this)})},function(t,n,r){var e=r(2),o="__core-js_shared__",i=e[o]||(e[o]={});t.exports=function(t){return i[t]||(i[t]={})}},function(t,n,r){var e=r(17),o=r(13);t.exports=function(t,n,r){if(e(n))throw TypeError("String#"+r+" doesn't accept regex!");return String(o(t))}},function(t,n,r){t.exports=!r(15)(function(){return 7!=Object.defineProperty({},"a",{get:function(){return 7}}).a})},function(t,n){var r=Math.ceil,e=Math.floor;t.exports=function(t){return isNaN(t=+t)?0:(t>0?e:r)(t)}},function(t,n,r){var e=r(23),o=Math.min;t.exports=function(t){return t>0?o(e(t),9007199254740991):0}},function(t,n,r){"use strict";var e=r(3),o=r(24),i=r(21),u="endsWith",c=""[u];e(e.P+e.F*r(14)(u),"String",{endsWith:function(t){var n=i(this,t,u),r=arguments,e=r.length>1?r[1]:void 0,f=o(n.length),s=void 0===e?f:Math.min(o(e),f),a=String(t);return c?c.call(n,a,s):n.slice(s-a.length,s)===a}})},function(t,n,r){var e=r(5),o=r(3),i=r(1).Array||Array,u={},c=function(t,n){e.each.call(t.split(","),function(t){void 0==n&&t in i?u[t]=i[t]:t in[]&&(u[t]=r(12)(Function.call,[][t],n))})};c("pop,reverse,shift,keys,values,entries",1),c("indexOf,every,some,forEach,map,filter,find,findIndex,includes",3),c("join,slice,concat,push,splice,unshift,sort,lastIndexOf,reduce,reduceRight,copyWithin,fill"),o(o.S,"Array",u)}]);
+
+/***/ },
+/* 298 */
+/*!***************************************************!*\
+  !*** ./components/AddFileButton/file-preview.png ***!
+  \***************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "components/AddFileButton/file-preview.png";
+
+/***/ },
+/* 299 */
+/*!*******************************************************!*\
+  !*** ./components/AddFolderButton/AddFolderButton.js ***!
+  \*******************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(/*! react */ 1);
+	var ReactRouter = __webpack_require__(/*! react-router */ 159);
+	var classNames = __webpack_require__(/*! classnames */ 218);
+	var styles = __webpack_require__(/*! ./AddFolderButton.css */ 300);
+	var Link = ReactRouter.Link;
+	var Navigation = __webpack_require__(/*! ../Navigation */ 217);
+	var UserButton = __webpack_require__(/*! ../UserButton */ 221);
+	var File = __webpack_require__(/*! ../File */ 278);
+	var API = __webpack_require__(/*! ../../services/api */ 227);
+	
+	var AddFolderButton = React.createClass({
+		displayName: "AddFolderButton",
+	
+		getInitialState: function () {
+			return { showPopover: false };
+		},
+		onDrop: function (files) {
+			console.log('Received files: ', files);
+		},
+		hidePopover: function () {
+			this.setState({ showPopover: false });
+		},
+		showPopover: function () {
+			this.setState({ showPopover: true });
+		},
+		createFolder: function (e) {
+			e.preventDefault();
+			var self = this;
+			this.setState({ showPopover: false, creatingFolder: true });
+			var pathString = '';
+			for (var i in this.props.path) {
+				pathString += this.props.path[i] + '/';
+			}
+			API.file.createFolder(pathString + this.refs.folderName.value + '/').then(function (data) {
+				self.setState({ creatingFolder: false });
+				self.props.reloadFiles();
+			});
+		},
+		render: function () {
+			return React.createElement(
+				"div",
+				{ className: "AddFolderButton " },
+				React.createElement(
+					"button",
+					{ className: "btn btn-hover", onClick: this.showPopover },
+					React.createElement("i", { className: "fa fa-folder" }),
+					" Create Folder"
+				),
+				React.createElement("br", null),
+				this.state.creatingFolder ? React.createElement(
+					"span",
+					null,
+					React.createElement("i", { className: "fa fa-circle-o-notch fa-spin" }),
+					" Creating Folder"
+				) : '',
+				this.state.showPopover ? React.createElement(
+					"div",
+					null,
+					React.createElement("div", { className: "screen", onClick: this.hidePopover }),
+					React.createElement(
+						"div",
+						{ className: "folder-popover" },
+						React.createElement(
+							"h1",
+							null,
+							"New Folder"
+						),
+						React.createElement(
+							"p",
+							null,
+							"Type the name of the new folder you would like to create."
+						),
+						React.createElement(
+							"form",
+							{ className: "form-inline", onSubmit: this.createFolder },
+							React.createElement(
+								"div",
+								{ className: "input-group" },
+								React.createElement("input", { type: "text", placeholder: "Folder Name", ref: "folderName", className: "form-control" }),
+								React.createElement(
+									"span",
+									{ className: "input-group-btn" },
+									React.createElement(
+										"button",
+										{ className: "btn btn-default", type: "button", onClick: this.createFolder },
+										"Create"
+									)
+								)
+							)
+						)
+					)
+				) : ''
+			);
+		}
+	});
+	
+	module.exports = AddFolderButton;
+
+/***/ },
+/* 300 */
+/*!********************************************************!*\
+  !*** ./components/AddFolderButton/AddFolderButton.css ***!
+  \********************************************************/
+/***/ function(module, exports) {
+
+	// removed by extract-text-webpack-plugin
+
+/***/ },
+/* 301 */,
+/* 302 */
+/*!*******************************************!*\
+  !*** ./components/FilesPage/package.json ***!
+  \*******************************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"name": "FilesPage",
+		"version": "0.0.0",
+		"private": false,
+		"main": "./FilesPage.js",
+		"secure": true
+	};
+
+/***/ },
+/* 303 */
 /*!*****************************************!*\
   !*** ./components/HomePage/HomePage.js ***!
   \*****************************************/
@@ -8405,8 +9674,7 @@ webpackJsonp([1],[
 
 	var React = __webpack_require__(/*! react */ 1);
 	var ReactRouter = __webpack_require__(/*! react-router */ 159);
-	var styles = __webpack_require__(/*! ./HomePage.css */ 275);
-	var api = __webpack_require__(/*! ../api */ 238);
+	var styles = __webpack_require__(/*! ./HomePage.css */ 304);
 	
 	var HomePage = React.createClass({
 		displayName: 'HomePage',
@@ -8421,15 +9689,16 @@ webpackJsonp([1],[
 		componentWillMount: function () {
 			var self = this;
 			console.log('commponentWillMount');
-			api.getHoa(function (success, hoas) {
-				var hoa = hoas.hoa[hoas.hoa.length - 1];
-				console.log('hoooa', hoa);
-				self.setState({
-					hoaName: hoa.name,
-					message: hoa.message,
-					announcements: hoa.announcements
-				});
-			});
+			/*		api.getHoa(function(success, hoas) {
+	  			var hoa = hoas.hoa[hoas.hoa.length - 1];
+	  			console.log('hoooa', hoa);
+	  			self.setState({
+	  				hoaName: hoa.name,
+	  				message: hoa.message,
+	  				announcements: hoa.announcements
+	  			});
+	  		});
+	  		*/
 		},
 		render: function () {
 			return React.createElement(
@@ -8477,7 +9746,7 @@ webpackJsonp([1],[
 	module.exports = HomePage;
 
 /***/ },
-/* 275 */
+/* 304 */
 /*!******************************************!*\
   !*** ./components/HomePage/HomePage.css ***!
   \******************************************/
@@ -8486,8 +9755,20 @@ webpackJsonp([1],[
 	// removed by extract-text-webpack-plugin
 
 /***/ },
-/* 276 */,
-/* 277 */
+/* 305 */,
+/* 306 */
+/*!******************************************!*\
+  !*** ./components/HomePage/package.json ***!
+  \******************************************/
+/***/ function(module, exports) {
+
+	module.exports = {
+		"name": "HomePage",
+		"main": "./HomePage.js"
+	};
+
+/***/ },
+/* 307 */
 /*!*************************************************!*\
   !*** ../~/bootstrap/dist/css/bootstrap.min.css ***!
   \*************************************************/
@@ -8496,13 +9777,13 @@ webpackJsonp([1],[
 	// removed by extract-text-webpack-plugin
 
 /***/ },
-/* 278 */,
-/* 279 */,
-/* 280 */,
-/* 281 */,
-/* 282 */,
-/* 283 */,
-/* 284 */
+/* 308 */,
+/* 309 */,
+/* 310 */,
+/* 311 */,
+/* 312 */,
+/* 313 */,
+/* 314 */
 /*!*********************!*\
   !*** ./css/app.css ***!
   \*********************/

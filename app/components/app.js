@@ -2,7 +2,6 @@ var React = require("react");
 var ReactRouter = require("react-router");
 var History = ReactRouter.History;
 
-var auth = require("./auth.js");
 var Header = require('./Header');
 var Navigation = require('./Navigation');
 var Sidebar = require('./Sidebar');
@@ -12,7 +11,6 @@ var App = React.createClass({
 
 	getInitialState: function() {
 		return {
-			loggedIn: auth.loggedIn(),
 			menuVisible: false
 		};
 	},
@@ -20,10 +18,8 @@ var App = React.createClass({
 		this.setState({loggedIn:loggedIn});
 	},
 	componentWillMount: function() {
-		auth.onChange = this.setStateOnAuth;
 	},
 	logout: function(event) {
-		auth.logout();
 		this.history.pushState(null, '/');
 	},
 	toggleMenu: function() {

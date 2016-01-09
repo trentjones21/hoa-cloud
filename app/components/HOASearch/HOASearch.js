@@ -3,7 +3,6 @@ var ReactRouter = require("react-router");
 var classNames = require('classnames');
 var styles = require('./HOASearch.css');
 var Link = ReactRouter.Link;
-var api = require('../api');
 var API = require('../../services/api');
 var _ = require('underscore');
 
@@ -23,7 +22,7 @@ var HOASearch = React.createClass({
 			prefix = prefix.toLowerCase();
 			return  prefix.length >= 3 && item.slice(0, prefix.length) == prefix; 
 		});
-		this.setState({visibleHoas: visible});
+		this.setState({visibleHoas: visible.slice(0,8)});
 	},
 	setSelectedHoa: function(hoa) {
 		this.setState({selectedHoa: hoa});

@@ -1,0 +1,26 @@
+.FilesPage .row-element {
+	padding: 30px 0px
+}
+
+.FilesPage .AddFolderButton {
+	float: right;
+	margin: 0px 5px;
+}
+.FilesPage .AddFileButton {
+	float: right;
+	margin: 0px 5px;
+}
+
+.FilesPage .message {
+	font-size: 28px;
+	text-align: center;
+	color: #aaa;
+}
+
+.FilesPage .back-button {
+	margin-right: 10px;
+}
+
+.FilesPage .back-button:hover {
+	cursor: pointer;
+}

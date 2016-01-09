@@ -18,9 +18,11 @@ var Navigation = React.createClass({
 						return (<div className='item' >{item}</div>);
 				}) : '' }
 				{ this.props.path ? this.props.path.map(function(part) {
-						return (<div key={part.name} className='part' onClick={part.onClick}>
+						return (<div key={part.name} className='part' >
+								<button className='btn btn-hover' onClick={part.onClick}>
 									{part.name}
-									<div className='slash'>/</div>
+								</button>
+								<div className='slash'>/</div>
 								</div>
 								);
 				}) : '' }

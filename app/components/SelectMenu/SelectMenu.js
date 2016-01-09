@@ -21,13 +21,13 @@ var SelectMenu = React.createClass({
 				href = 
 					<Link to={this.props.items[0].url}>
 						<div className='dropdown-item'>
-							{this.props.items[0].text}
+							<i className={'fa ' + this.props.items[0].icon}></i> {this.props.items[0].text}
 						</div>
 					</Link>
 			} else {
 				href = 
 					<div className='dropdown-item' onClick={this.props.items[0].callback}>
-						{this.props.items[0].text}
+						<i className={'fa ' + this.props.items[0].icon}></i> {this.props.items[0].text}
 					</div>
 			}
 

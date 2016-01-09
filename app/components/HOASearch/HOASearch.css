@@ -1,3 +1,7 @@
+.HOASearch {
+	text-align: left;
+}
+
 .HOASearch .input {
 	width: 100%;
 	font-size: 16px;
@@ -6,10 +10,15 @@
 .HOASearch .hoa-result {
 	font-size: 16px;
 	padding: 10px;
+	display: inline-block;
+	margin: 5px;
+	border-radius: 4px;
+	background: #79B99C;
+	color: white;
 }
 
 
 .HOASearch .hoa-result:hover {
-	background: #eee;
+	background: #69a98C;
 	cursor: pointer;
 }
